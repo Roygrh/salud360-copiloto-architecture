@@ -69,6 +69,7 @@ Solo el 41% de proveedores tiene disponibilidad estructurada (§03) y no se les 
 - El nivel 2 no es gratis: cada solicitud al proveedor es un mensaje iniciado por Salud360 con una plantilla de WhatsApp, y Meta cobra esos mensajes. Desde el 1 de octubre de 2026 Meta cobra todo mensaje que envía Salud360, dentro o fuera de la ventana de atención de 24 horas (periodo después del último mensaje del usuario en que la empresa puede responder sin plantilla), así que se cobran tanto la solicitud al proveedor como la confirmación al miembro (contexto/04). La ventana solo determina si hace falta usar una plantilla aprobada. Su costo se cuantifica en la Fase 3 (D4).
 
 - El proveedor no adopta software: responde un WhatsApp, que ya usa. Facilitar, no obligar (§05).
+- Sedes ancla: para cada punto de entrada de la zona del piloto, 2 o 3 sedes que aceptan responder la solicitud de nivel 2 el mismo día hábil a cambio de quedar primeras en el ranking y del sello "confirma rápido" (mitigación del riesgo principal, F4 B2).
 - Incentivo: en el ranking, las sedes que confirman rápido o publican disponibilidad suben. El orden es: disponibilidad estructurada o tasa de confirmación alta, luego precio completo, luego cercanía. Es el incentivo más barato disponible: más miembros.
 - Opcional: enlace web simple para que el proveedor publique sus horarios sin instalar nada.
 - Honestidad para el CEO: "en el mismo flujo" es literal solo en el nivel 1. En el nivel 2 la solicitud es inmediata y la confirmación llega después.
@@ -81,7 +82,7 @@ Es la prioridad 1 de F1 (sección B). Lo hace la analista con apoyo de ingenier�
 - **Sedes duplicadas.** El 18% comparte teléfono con otra sede (§03). Regla: mismo teléfono y nombre o dirección parecidos genera candidato a duplicado; decide un humano. No se fusiona automático: una central telefónica compartida es legítima.
 - **Precios faltantes.** El 63% tiene lista completa (§03); el 37% (100 - 63) no. Nunca se estima ni se infiere un precio. La sede sin precio para el servicio buscado se muestra con "precio por confirmar" y baja en el ranking. Campaña de completitud: mensaje al proveedor con su lista actual para confirmar o completar.
 - **Proveedores activos (500 vs 748, §03).** Bandera de activo verificada; solo sedes activas entran al copiloto.
-- **Bandera "publicable en copiloto".** Una sede entra al flujo solo si tiene especialidad canónica, está activa, tiene teléfono verificado y precio para el punto de entrada del piloto. El piloto (M3) se limita a lo que ya esté limpio.
+- **Bandera "publicable en copiloto".** Una sede entra al flujo solo si tiene especialidad canónica, está activa, tiene teléfono verificado y precio para el punto de entrada del piloto. Para entrar al nivel 2 (solicitud de cita, A4), una sede sin disponibilidad estructurada debe además haber respondido a la campaña de precios de la analista (prueba de vida, F4 B2); si no respondió, va al nivel 3. El piloto (M3) se limita a lo que ya esté limpio.
 - La limpieza también mejora el directorio público y la app, con o sin IA.
 
 ### A6. Datos de salud y Ley 8968
@@ -122,7 +123,7 @@ Forma de la restricción (§05): consentimiento expreso e informado, y Salud360 
 | Servicios administrados (serverless, base administrada, cola) | Servidores o clúster propios | Sin SRE de guardia y los mismos 4 ingenieros mantienen la app (§05) |
 | Interruptor que apaga el modelo y deja el menú | Flujo que depende del modelo | Si el modelo cambia de versión o falla, el servicio sigue (D5) |
 | Un backend para WhatsApp y app | Dos productos separados | M1 pide app, M5 pide WhatsApp; menos de 4 ingenieros no mantienen dos |
-| Lanzar B para todo el tráfico y A para el 20% del texto libre, con criterio de decisión previo | Lanzar solo con IA o solo sin IA | Se decide con datos de producción y no con opinión; el modelo es apagable |
+| Lanzar B para todo el tráfico y A para el 20% del texto libre tras 5 días hábiles en modo sombra; en el piloto se valida seguridad y calidad, y la decisión A frente a B se toma con el volumen de régimen, con criterio fijado de antemano | Lanzar solo con IA o solo sin IA | Se decide con datos de producción y no con opinión; el modelo es apagable |
 
 ### A8. Operable por menos de 4 ingenieros
 
@@ -164,7 +165,7 @@ Cuándo convendría quedarse con B:
 - Si el equipo no puede sostener el conjunto de evaluación y la vigilancia de versiones.
 - Si en el experimento A no mejora la conversión a cita frente a B.
 
-Lectura: en las 8 semanas se lanza B como base para todo el tráfico. Desde el primer día en producción, A atiende al 20% de las conversaciones con texto libre, como experimento controlado: ambas versiones se miden una contra otra en producción. El modelo solo se enciende si antes pasa una prueba con un conjunto de casos (detalle en la Fase 4, D5). Criterio fijado de antemano: si en 4 semanas A mejora la conversión a cita sin aumentar las alarmas mal resueltas, sube al 100%; si no, se apaga. Los umbrales concretos se definen en la Fase 4.
+Lectura: en las 8 semanas se lanza B como base para todo el tráfico. Tras 5 días hábiles en modo sombra (F4 A3), A atiende al 20% de las conversaciones con texto libre, como experimento controlado: ambas versiones se miden una contra otra en producción. El modelo solo se enciende si antes pasa una prueba con un conjunto de casos (detalle en la Fase 4, D5). Criterio fijado de antemano: en el piloto se valida seguridad y calidad; la decisión A frente a B (subir al 100% si mejora la conversión a cita sin aumentar las alarmas mal resueltas, o apagar) se toma con el volumen de régimen. Umbrales en F4 A5.
 
 ---
 

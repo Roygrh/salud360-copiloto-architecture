@@ -1,6 +1,6 @@
 # F3: Plan de 8 semanas (insumo para D3) y economía unitaria (insumo para D4)
 
-Resultado interno. Coherente con F1 (sección C, mandato) y F2 (lanzamiento: versión sin IA, B, para todo el tráfico; modelo, A, para el 20% de las conversaciones con texto libre, solo si pasa la prueba con conjunto de casos, y criterio de decisión a las 4 semanas). Precios: únicamente `contexto/04-precios-referencia.md`. Moneda: USD. Redondeo: costos por conversación a 4 decimales, montos mensuales a 2 decimales, porcentajes a 1 o 2 decimales; cada operación usa el valor ya redondeado del paso anterior.
+Resultado interno. Coherente con F1 (sección C, mandato) y F2 (lanzamiento: versión sin IA, B, para todo el tráfico; modelo, A, para el 20% de las conversaciones con texto libre, solo si pasa la prueba con conjunto de casos y tras 5 días hábiles en modo sombra; en el piloto se valida seguridad y calidad, y la decisión A frente a B se toma con volumen de régimen, F4 A5). Precios: únicamente `contexto/04-precios-referencia.md`. Moneda: USD. Redondeo: costos por conversación a 4 decimales, montos mensuales a 2 decimales, porcentajes a 1 o 2 decimales; cada operación usa el valor ya redondeado del paso anterior.
 
 ---
 
@@ -24,9 +24,9 @@ Reparto de esfuerzo (SUPUESTO, estimación propia, a validar con el equipo):
 | Apoyo a la limpieza de datos (scripts de normalización y candidatos a duplicado) | 1 |
 | Pruebas de punta a punta, métricas mínimas (F2 A8), lanzamiento | 1 |
 | **Subtotal** | **14** |
-| Reserva para imprevistos: 16 - 14 = 2 (2 / 16 = 12,5%) | 2 |
+| Reserva para imprevistos: 16 - 14 = 2 (2 / 16 = 12,5%). La consumen casi por completo las extensiones de la pieza del modelo definidas en F4 (corrida diaria, modo sombra, apagado automático, métricas por grupo) | 2 |
 
-Lectura: el plan cabe, pero con poca holgura. Cualquier pieza nueva desplaza otra; por eso A5 es largo.
+Lectura: el plan cabe, pero casi sin holgura: la reserva queda tomada por la pieza del modelo. Cualquier pieza nueva desplaza otra; por eso A5 es largo y, ante cualquier retraso, lo primero que se corta es A (A5).
 
 ## A2. Plan semana a semana
 
@@ -36,12 +36,12 @@ Frentes en paralelo. "Hito" marca una dependencia que bloquea a otros frentes.
 |---|---|---|---|---|---|---|---|
 | 1 | Definir zona del piloto (A4). Taxonomía canónica de especialidades; reglas simples sobre los 214 nombres (§03) | Ingeniería y analista redactan el borrador: lista cerrada, tabla "necesidad a punto de entrada", reglas de alarma, texto de emergencia. Pedir fecha de la reunión 1 | Alta de la cuenta de WhatsApp Business Platform y verificación del negocio. Política de Meta para proveedores de IA: resuelta, el copiloto la cumple (`04`, Parte C) | Encargo: texto de consentimiento, contrato de subprocesador con el proveedor del modelo, revisión de Meta como subprocesador | Webhook, identidad (cruce con base de miembros), estructura del orquestador | Confirmar si las reservas de la app usan la disponibilidad del 41% (§03, duda de F2) | Definir formato del conjunto de casos |
 | 2 | Duplicados por teléfono compartido (18%, §03) y bandera de activo, solo en la zona | Enviar borrador al consejo para lectura previa | Enviar plantillas a aprobación de Meta (solicitud al proveedor, confirmación de cita fuera de ventana) | Borrador de consentimiento | Consentimiento por botón, menú, diccionario | Nivel 1 sobre el motor de reservas de la app | Conjunto de casos v1: frases redactadas por agentes de soporte a partir de su experiencia (sin texto real de miembros) |
-| 3 | Precios del punto de entrada en la zona: llamar o escribir a las sedes con lista incompleta (37%, §03) | **Reunión 1: aprueba lista cerrada, tabla, reglas de alarma y textos** (hito) | Seguimiento de plantillas | | Cargar catálogo aprobado; reglas de alarma; búsqueda y ranking | Nivel 1 terminado | Filtro de identificadores, intérprete, validador |
+| 3 | Precios del punto de entrada en la zona: llamar o escribir a las sedes con lista incompleta (37%, §03). En las semanas 3-5 se registra quién responde y en cuánto tiempo (prueba de vida para el nivel 2, F2 A5; F4 B2) | **Reunión 1: aprueba lista cerrada, tabla, reglas de alarma y textos** (hito) | Seguimiento de plantillas | | Cargar catálogo aprobado; reglas de alarma; búsqueda y ranking | Nivel 1 terminado | Filtro de identificadores, intérprete, validador |
 | 4 | Primer corte de sedes publicables | | **Plantillas aprobadas** (hito; si se rechazan, reenviar) | **Consentimiento final y contrato de subprocesador firmado** (hito para producción y para encender el modelo) | Flujo B de punta a punta en ambiente de prueba | Nivel 2: plantilla al proveedor, plazo de respuesta, siguiente sede | Prueba v1 con el conjunto de casos |
-| 5 | Completar precios faltantes en la zona | Consejo revisa por escrito los casos dudosos de la prueba (SUPUESTO: acepta revisión asíncrona) | | | Integración con el catálogo publicable | Nivel 3: traspaso a soporte con contexto | Ajuste de instrucciones y ejemplos; prueba v2 |
-| 6 | **Corte final de sedes publicables** (hito; se congela la lista) | | | | Pruebas internas con cuentas de prueba | Ensayo con 2-3 proveedores reales que acepten participar (SUPUESTO) | **Prueba final contra umbral (F4)**: decide si A se enciende el día 1 |
-| 7 | Revisión de lo que los evaluadores escribieron y no se reconoció (alimenta diccionario) | **Reunión 2: ajustes** a alarmas y tabla según pruebas (hito) | | | Aplicar ajustes del consejo (son datos, no código: F2 A8) | Ensayo de la demo con el proveedor de la demo | Volver a correr la prueba con el catálogo ajustado |
-| 8 | Monitoreo de "precio por confirmar" y sedes que no responden | | | | **Producción** para el alcance de A4. Demo del CEO (A6) | En producción | A al 20% del texto libre si pasó la prueba; si no, apagado |
+| 5 | Completar precios faltantes en la zona. Semanas 5-7: soporte etiqueta el motivo de cada contacto y la cuenta corporativa, para tener la línea base de "¿a dónde voy?" antes del piloto (F4 A4) | Consejo revisa por escrito los casos dudosos de la prueba (SUPUESTO: acepta revisión asíncrona) | | | Integración con el catálogo publicable | Nivel 3: traspaso a soporte con contexto | Ajuste de instrucciones y ejemplos; prueba v2 |
+| 6 | **Corte final de sedes publicables** (hito; se congela la lista) | | | | Pruebas internas con cuentas de prueba | Ensayo con 2-3 proveedores reales que acepten participar (SUPUESTO) | **Prueba final contra umbral (F4 A2)**: decide si A entra en la semana 8. Sombra interna sobre las pruebas internas (F4 A3) |
+| 7 | Revisión de lo que los evaluadores escribieron y no se reconoció (alimenta diccionario) | **Reunión 2: ajustes** a alarmas y tabla según pruebas (hito) | | | Aplicar ajustes del consejo (son datos, no código: F2 A8) | Ensayo de la demo con el proveedor de la demo | Volver a correr la prueba con el catálogo ajustado. Sigue la sombra interna (F4 A3) |
+| 8 | Monitoreo de "precio por confirmar" y sedes que no responden | | | | **Producción** para el alcance de A4. Demo del CEO (A6) | En producción | Si pasó la prueba: A al 20% del texto libre en modo sombra los primeros 5 días hábiles y visible después (F4 A3). Si no pasó o hay retraso: apagado |
 
 Supuesto de calendario: la reunión 1 cae en la semana 3 y la reunión 2 en la semana 7 (separación de ~4 semanas, una por mes, §05). Si la próxima reunión del consejo cae antes de la semana 3, no hay tiempo para un borrador serio; si cae después de la semana 4, se activa A3.
 
@@ -51,6 +51,8 @@ Dependencias principales:
 - Cuenta de WhatsApp → todo el canal (M5). Plantillas aprobadas → nivel 2.
 - Consentimiento final → cualquier conversación en producción. Contrato de subprocesador + prueba aprobada → encender el modelo.
 - Confirmación del motor de reservas de la app → alcance real del nivel 1.
+
+Regla de retraso: si cualquier frente se atrasa, lo primero que se corta es A (el modelo). B sale igual en la semana 8 porque no depende del modelo: el interruptor existe precisamente para esto.
 
 Riesgo de Meta: la cuenta y las plantillas dependen de un tercero con plazos que no controlamos. Mitigación: empezar el día 1. Si las plantillas no están aprobadas en la semana 6, el nivel 2 no sale y esas sedes pasan al nivel 3 (contacto asistido). Si la cuenta no está lista, no hay respaldo barato en 8 semanas (el canal de la app se corta, A5): es el riesgo de plazo sin plan B, por eso se escala desde la semana 1.
 
@@ -92,20 +94,21 @@ SUPUESTO: el número de empleados de las tres cuentas no está en el brief; defi
 | Psicología y salud mental como punto de entrada | Requiere un protocolo de crisis del consejo. La regla de alarma de crisis sí está activa |
 | Especialidades de acceso directo no aprobadas | Decisión clínica del consejo (§05), no de ingeniería |
 | Sedes fuera de la zona o no publicables | Limpieza imposible en 8 semanas a 0,5 analista (A4) |
-| Miembros fuera de las tres cuentas | Volumen y riesgo; se abre tras el criterio de 4 semanas |
+| Miembros fuera de las tres cuentas | Volumen y riesgo; se abre en régimen (desde las semanas 9-12) tras validar seguridad y calidad en el piloto (F4 A5) |
 | Agendar para dependientes | Consentimiento sobre datos de terceros, incluidos menores: requiere al abogado. F2 A1 lo prevé; se pospone |
-| Modelo al 100% | Se decide con el criterio de 4 semanas (F2 B2) |
+| Modelo al 100% | Se decide con volumen de régimen (F2 B2, F4 A5); en el piloto A solo se valida en seguridad y calidad |
+| Pieza del modelo (A), si hay retraso | Es lo primero que se corta: B sale igual en la semana 8 porque no depende del modelo. El interruptor existe precisamente para esto |
 | Modelo para limpieza fuera de línea | 214 nombres (§03) se revisan a mano con reglas; evita otro flujo de datos hacia un subprocesador |
 | Integración de agendas de proveedores y enlace web de horarios | No se les puede obligar (§05); adopción incierta |
 | Recordatorios de cita, encuestas y mensajes proactivos | Cada mensaje cuesta USD 0,0113 o más (`04`) y no son necesarios para el valor central |
 | Muestra de texto crudo para evaluar el modelo | Pendiente del abogado (F2 A6) |
 | Agendamiento integrado de telemedicina | Se deriva por el canal actual; integrarlo no cambia el resultado del piloto |
-| Panel de métricas completo | Solo las alertas mínimas de F2 A8 y las métricas del criterio de 4 semanas (F4) |
+| Panel de métricas completo | Solo las alertas mínimas de F2 A8 y las métricas de la validación del piloto (F4 A5) |
 | Atender no miembros por el copiloto | Reciben el enlace al directorio público (F2 A1) |
 
 ## A6. Qué demuestra el CEO el día de la presentación (M3)
 
-Guion (en producción, con una cuenta de prueba marcada como grupo A; nunca con datos de un miembro real):
+Guion (en producción, con una cuenta de prueba marcada como grupo A; nunca con datos de un miembro real). El día de la demo, para los miembros reales A está todavía en modo sombra (primeros 5 días hábiles, F4 A3); solo la cuenta de prueba lo ve activo:
 
 1. **Primer contacto.** Desde el teléfono de la cuenta de prueba escribe al número de Salud360. Aparece el consentimiento con botones. Toca "Acepto". Mensaje para la audiencia: cumplimos la Ley 8968 antes de leer una palabra de salud (§05).
 2. **Necesidad común (§02).** Escribe: "Me duele el hombro desde hace 3 semanas, ¿a dónde voy?". Las reglas de alarma no disparan. El sistema propone "Medicina general" (o la especialidad que haya habilitado el consejo) y pregunta con botones si es correcto. Toca "Sí".
@@ -118,7 +121,7 @@ Guion (en producción, con una cuenta de prueba marcada como grupo A; nunca con 
 Datos reales que el CEO debe tener listos:
 - Número de sedes publicables en la zona y cuántas tienen reserva inmediata (nivel 1).
 - Puntos de entrada activos y fecha de aprobación del consejo.
-- Resultado de la prueba del modelo (semana 6) y si A está encendido.
+- Resultado de la prueba del modelo (semana 6) y si A está en modo sombra o apagado para los miembros reales.
 - Cuántos empleados de las tres cuentas tienen acceso al piloto.
 - En régimen (38.000 miembros): costo total por conversación USD 0,1355 (B2), costo por contacto de soporte evitado USD 1,08 (B5) y costo por miembro USD 0,0415 al mes (B6), todo en escenario base.
 - Del piloto: solo el costo variable por conversación, USD 0,0925 en base sin infraestructura (B2). Durante el piloto domina el costo fijo de infraestructura (Parte B, costo del piloto).
@@ -132,6 +135,8 @@ Lo que NO debe prometer:
 - Que el copiloto mejora la renovación: es la hipótesis del proyecto y todavía no está medida (B8).
 - Fechas de expansión no aprobadas por el consejo o el abogado.
 - Que la IA "entiende todo": la IA es opcional y apagable.
+- Que A está activo para todos los miembros desde el lanzamiento: arranca en modo sombra (F4 A3).
+- Una fecha de decisión sobre la IA: se decide con volumen de régimen (F4 A5).
 
 ---
 
