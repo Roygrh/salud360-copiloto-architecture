@@ -142,7 +142,7 @@ Lo que NO debe prometer:
 
 # PARTE B. ECONOMÍA UNITARIA (D4)
 
-**Aviso: todos los cálculos de B1 a B7 corresponden al régimen**, es decir, con el copiloto abierto a los 38.000 miembros (después de las semanas 9-12). No son el costo del piloto de 8 semanas. El piloto tiene un volumen mucho menor, que no se puede calcular porque el brief no dice cuántos empleados tienen las tres cuentas corporativas (M3, A4).
+**Aviso: todos los cálculos de B1 a B7 corresponden al régimen**, es decir, con el copiloto abierto a los 38.000 miembros (desde las semanas 9-12). No son el costo del piloto de 8 semanas. El piloto tiene un volumen mucho menor, que no se puede calcular porque el brief no dice cuántos empleados tienen las tres cuentas corporativas (M3, A4).
 
 **Costo del piloto.** El costo variable escala con el número de conversaciones: USD 0,0925 por conversación en el escenario base, sin infraestructura (B2). La infraestructura fija (USD 200 a 1.000 al mes, SUPUESTO de B2) no depende del volumen, así que durante el piloto es el componente dominante del costo. Costo mensual del piloto = conversaciones del piloto × 0,0925 + infraestructura fija. Falta el número de empleados de las tres cuentas (Parte C).
 
@@ -277,7 +277,7 @@ Referencias: soporte hoy cuesta 14,2% del margen (B1); M2 costaría 95,8% (B4). 
 
 Para el CFO (cifras en régimen, 38.000 miembros):
 - El copiloto cuesta entre 2 y 6 centavos por miembro al mes, entre 0,8% y 2% del margen. En el escenario base ahorra unos USD 1.100 netos al mes en soporte; en el conservador pierde unos USD 140 al mes por el costo fijo de nube.
-- El 85% del costo variable es WhatsApp, no la IA (0,0791 / 0,0925 = 85,5%): la línea a vigilar en la factura es Meta. La propuesta original (M2) se habría comido el 96% del margen.
+- WhatsApp es casi todo el costo variable: 0,0924 de 0,0925 (mensajes al miembro 0,0791 más mensajes al proveedor 0,0133). La línea a vigilar en la factura es Meta. La propuesta original (M2) se habría comido el 96% del margen.
 - El ahorro en soporte paga la operación del copiloto; el retorno real está en no perder cuentas corporativas en la renovación (B8).
 
 ## B7. Sensibilidad (sobre el escenario base en régimen: 11.632 conversaciones, ahorro 2.689,90)

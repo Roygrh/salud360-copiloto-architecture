@@ -9,7 +9,7 @@
 | F2 | Arquitectura con diagrama (D2) y versión sin IA (D6) | `trabajo/F2-diseno.md`, `trabajo/F2-diagrama.mmd` | Hecho, corregido, pendiente validación |
 | F3 | Plan de 8 semanas (D3) y economía unitaria (D4) | `trabajo/F3-plan-y-costos.md` | Hecho, corregido, pendiente validación |
 | F4 | Validación y operación (D5), preguntas y riesgos (D7) | `trabajo/F4-operacion-y-riesgos.md` | Hecho, corregido, pendiente validación |
-| F5 | D1 al final, recorte a 8 páginas, D8 | `entregable/copiloto-salud360.md` | Pendiente |
+| F5 | D1 al final, recorte a 8 páginas, D8 | `entregable/copiloto-salud360.md` | Hecho, corregido, pendiente validación |
 | F6 | Exportar PDF, revisar defendibilidad, preparar pitch de 10 min | PDF enviado | Pendiente |
 
 Cada fase termina con validación de Enrique antes de pasar a la siguiente.
@@ -54,6 +54,9 @@ Cada fase termina con validación de Enrique antes de pasar a la siguiente.
 - F3/F4: si hay retraso, A (el modelo) es lo primero que se corta; B sale igual en la semana 8 porque no depende del modelo.
 - F4: riesgo que puede matar el proyecto: los proveedores no responden. Mitigación: prueba de vida para entrar al nivel 2, sedes ancla por punto de entrada, medición de respuesta desde la campaña de precios (semanas 3-5).
 - F2/F4: prueba de vida y sedes ancla adoptadas para el nivel 2: solo entra al nivel 2 la sede que respondió a la campaña de precios; 2 o 3 sedes ancla por punto de entrada.
+- F5: definición de régimen: el copiloto abierto a todos los miembros, desde las semanas 9-12. Se usa igual en D3, D4 y D5.
+- F5: el régimen se abre por zonas a medida que sus sedes quedan publicables; el copiloto en la app va después.
+- F5: en la contingencia, el aviso de emergencias es texto estándar con el 911 aprobado por el abogado y ratificado por el consejo.
 
 ## Supuestos vigentes
 - Contactos de soporte: se usa 9.000 al mes como techo (dato medido).
