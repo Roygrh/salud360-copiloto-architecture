@@ -14,7 +14,7 @@ Recorrido en WhatsApp (M5). El mismo backend sirve a la app (M1 dice "en la app"
 
 1. **Canal WhatsApp (tercero: Meta).** WhatsApp Business Platform. Meta recibe el mensaje y lo entrega a Salud360 por webhook (aviso HTTP que Meta envía a nuestro servidor cada vez que llega un mensaje). Respuestas con botones y listas nativas de WhatsApp siempre que se pueda, para reducir texto libre.
 2. **Orquestador de conversación (determinista).** Máquina de estados: el código sabe en qué paso está cada conversación (consentimiento, necesidad, ubicación, proveedor, cita) y qué respuestas son válidas en ese paso. Todos los mensajes que lee el miembro son plantillas fijas aprobadas, rellenadas con datos de la base. Ningún texto generado por el modelo llega al miembro.
-3. **Identidad y consentimiento (determinista).** Cruza el número de WhatsApp con la base de miembros existente. Si no es miembro: enlace al directorio público y nada más (no se procesa dato de salud). Si es miembro: pide consentimiento (ver A6) antes de aceptar cualquier texto libre. Permite elegir dependiente.
+3. **Identidad y consentimiento (determinista).** Cruza el número de WhatsApp con la base de miembros existente. Si no es miembro: enlace al directorio público y nada más (no se procesa dato de salud). Si es miembro: pide consentimiento (ver A6) antes de aceptar cualquier texto libre. Permite elegir dependiente (la arquitectura lo soporta; queda fuera del piloto de 8 semanas, ver F3).
 4. **Reglas de señales de alarma (determinista).** Lista de frases y palabras clave validada por el consejo médico (§05), más una pregunta de chequeo con botones. Se evalúa sobre el texto crudo antes del modelo. Si dispara: mensaje fijo (ver A3) y fin del flujo de búsqueda.
 5. **Intérprete de texto (modelo de IA, tercero).** Recibe solo el texto del miembro. Antes de enviarlo, un filtro determinista elimina los identificadores conocidos (nombre del titular y de sus dependientes registrados, teléfono, número de afiliado, correos y números de documento). El texto libre puede contener otros datos personales que el filtro no detecta (nombres de terceros, lugares); por eso el contrato de subprocesador es condición para encender el modelo (A6). Devuelve un objeto con campos cerrados: punto de entrada (de la lista), ubicación mencionada, preferencia de horario, bandera "posible alarma", o "no sé". El miembro confirma con un botón antes de seguir.
 6. **Validador de salida (determinista).** Rechaza cualquier valor fuera de la lista cerrada o mal formado. Rechazo, demora o caída del modelo equivalen a "no sé": el orquestador muestra el menú.
@@ -66,7 +66,7 @@ Solo el 41% de proveedores tiene disponibilidad estructurada (§03) y no se les 
 | 2. Solicitud de cita | Sede sin disponibilidad, con WhatsApp o teléfono verificado | "Pedimos la cita por ti". Salud360 envía al proveedor un mensaje de plantilla de WhatsApp con botones (confirmar horario, proponer otro, no puedo). El miembro recibe la confirmación en el mismo chat. Si no hay respuesta en el plazo, se ofrece la siguiente sede |
 | 3. Contacto asistido | Sin respuesta o sin canal del proveedor | Teléfono y precio de la sede, más botón para pasar a soporte humano con el contexto ya armado |
 
-- El nivel 2 no es gratis: cada solicitud al proveedor es un mensaje iniciado por Salud360 con una plantilla de WhatsApp, y Meta cobra esos mensajes. La confirmación al miembro también puede cobrarse si llega fuera de la ventana de atención de 24 horas (periodo después del último mensaje del usuario en que la empresa puede responder sin plantilla pagada). Su costo se cuantifica en la Fase 3 (D4).
+- El nivel 2 no es gratis: cada solicitud al proveedor es un mensaje iniciado por Salud360 con una plantilla de WhatsApp, y Meta cobra esos mensajes. Desde el 1 de octubre de 2026 Meta cobra todo mensaje que envía Salud360, dentro o fuera de la ventana de atención de 24 horas (periodo después del último mensaje del usuario en que la empresa puede responder sin plantilla), así que se cobran tanto la solicitud al proveedor como la confirmación al miembro (contexto/04). La ventana solo determina si hace falta usar una plantilla aprobada. Su costo se cuantifica en la Fase 3 (D4).
 
 - El proveedor no adopta software: responde un WhatsApp, que ya usa. Facilitar, no obligar (§05).
 - Incentivo: en el ranking, las sedes que confirman rápido o publican disponibilidad suben. El orden es: disponibilidad estructurada o tasa de confirmación alta, luego precio completo, luego cercanía. Es el incentivo más barato disponible: más miembros.
@@ -156,13 +156,13 @@ Qué no gana A:
 - No arregla los datos, que son la causa principal (F1, sección B). Ambas versiones dependen de la misma limpieza.
 - No aumenta el 41% de disponibilidad ni hace que los proveedores contesten.
 - Su ventaja está acotada por diseño: el modelo solo elige dentro de la misma lista que el menú ya ofrece. A mejora la entrada al embudo, no el resto.
-- Agrega costo por mensaje, un subprocesador más con datos de salud, más texto en el consentimiento, y la carga de evaluar y vigilar versiones del modelo (D5).
+- El costo del modelo es despreciable frente al del canal (F3); las desventajas reales son un subprocesador más con datos de salud, más texto en el consentimiento y la carga de evaluar y vigilar las versiones del modelo (D5).
 
 Cuándo convendría quedarse con B:
 - Si el piloto muestra que la mayoría usa botones o que la tasa de reconocimiento del diccionario es alta.
 - Si el abogado no acepta enviar texto libre de salud al proveedor del modelo.
 - Si el equipo no puede sostener el conjunto de evaluación y la vigilancia de versiones.
-- Si en F3 el costo incremental de A por interacción no se justifica con la mejora medida en conversión.
+- Si en el experimento A no mejora la conversión a cita frente a B.
 
 Lectura: en las 8 semanas se lanza B como base para todo el tráfico. Desde el primer día en producción, A atiende al 20% de las conversaciones con texto libre, como experimento controlado: ambas versiones se miden una contra otra en producción. El modelo solo se enciende si antes pasa una prueba con un conjunto de casos (detalle en la Fase 4, D5). Criterio fijado de antemano: si en 4 semanas A mejora la conversión a cita sin aumentar las alarmas mal resueltas, sube al 100%; si no, se apaga. Los umbrales concretos se definen en la Fase 4.
 

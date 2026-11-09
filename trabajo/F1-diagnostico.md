@@ -55,8 +55,8 @@ La baja renovación ("no supe cómo usarlo", §02) es síntoma de las tres causa
 | M1 | Modificar; rechazar la parte clínica | Un modelo no debe recomendar especialista a partir de síntomas: no hay médico en planta (§05) y son datos de salud sensibles. En su lugar, orientación hacia una lista cerrada de puntos de entrada validada por el consejo médico, con señales de alarma que derivan a emergencias o telemedicina. Agendar en el mismo flujo solo es posible para el 41% con disponibilidad |
 | M2 | Rechazar el método, mantener el objetivo | Meter la base en el prompt no la vuelve actual (está mal en origen), cuesta en cada mensaje y envía toda la base a un subprocesador. Precios y disponibilidad salen de la base de datos; el modelo nunca los genera. No hace falta el modelo más caro para interpretar texto |
 | M3 | Aceptar la fecha, recortar alcance | Con menos de 4 ingenieros efectivos sale un piloto acotado (pocas especialidades y datos limpios), no el producto completo |
-| M4 | Aceptar y cuantificar | Meta: costo por interacción claramente menor a $1,85 (contacto de soporte). Se demuestra en D4 |
-| M5 | Aceptar con condiciones | Los miembros ya usan WhatsApp con soporte (§01). Meta cobra por conversación y es subprocesador de datos de salud: consentimiento al inicio y mínimo dato clínico en el canal |
+| M4 | Aceptar y cuantificar | Meta: que el costo por contacto de soporte evitado sea menor que $1,85 (costo de un contacto, §03). Una conversación del copiloto no equivale a un contacto evitado. En el escenario base de F3 es de unos $1,08 por contacto evitado, en régimen. Se demuestra en D4 |
+| M5 | Aceptar con condiciones | Los miembros ya usan WhatsApp con soporte (§01). Meta cobra por cada mensaje que envía Salud360, incluidas las respuestas (contexto/04), y es subprocesador de datos de salud: consentimiento al inicio y mínimo dato clínico en el canal |
 
 Lo que se rechaza construir: un modelo que decide por sí solo a qué especialista ir según los síntomas.
 
