@@ -1,0 +1,56 @@
+flowchart LR
+  M([Miembro]) --> WA[WhatsApp / Meta]
+  APP[App actual] --> ORQ
+  WA --> ORQ[Orquestador<br/>máquina de estados<br/>plantillas fijas]
+
+  subgraph EnLinea[Flujo del miembro]
+    ORQ --> ID[Identidad y<br/>consentimiento]
+    ID -->|no miembro o no acepta| PUB[Directorio público]
+    ID -->|consentimiento aceptado| ALR[Reglas de alarma]
+    ALR -->|emergencia| EMG[Mensaje fijo:<br/>emergencias]
+    ALR -->|atención pronta| TEL[Telemedicina<br/>clínicos por consulta]
+    ALR -->|"sin alarma, texto libre 20%,<br/>identificadores conocidos eliminados"| LLM[Modelo de IA:<br/>propone punto de entrada]
+    ALR -->|"sin alarma, botones o 80%"| MENU[Menú con botones]
+    LLM -.->|"posible alarma: solo escala"| ALR
+    LLM --> VAL[Validador:<br/>lista cerrada +<br/>confirma el miembro]
+    VAL -->|falla o no sé| MENU
+    VAL --> BUS[Búsqueda y ranking<br/>SQL]
+    MENU --> BUS
+    BUS --> AG[Agendamiento<br/>3 niveles]
+    AG -->|nivel 1| RES[Reserva de la app]
+    AG -->|nivel 2| PROV[Proveedor responde<br/>por WhatsApp]
+    AG -->|nivel 3| SOP[Soporte humano<br/>con contexto]
+  end
+
+  subgraph Datos[Datos]
+    DBM[(Miembros)]
+    CAT[(Catálogo clínico<br/>puntos de entrada y alarmas)]
+    DBP[(Catálogo de<br/>proveedores limpio)]
+  end
+
+  subgraph FueraDeLinea[Fuera de línea]
+    CONS[Consejo médico<br/>mensual] --> CAT
+    LIM[Limpieza por reglas] --> REV[Revisión analista] --> DBP
+    LLM2[Modelo de IA:<br/>propone mapeos] --> REV
+  end
+
+  subgraph Leyenda[Leyenda]
+    LG1[Modelo de IA]
+    LG2[Determinista]
+    LG3[Tercero]
+    LG4[Persona]
+  end
+
+  ID --- DBM
+  ALR --- CAT
+  VAL --- CAT
+  BUS --- DBP
+
+  classDef ia fill:#f9d6d5,stroke:#c0392b,stroke-width:2px,color:#000
+  classDef det fill:#d6eaf8,stroke:#2471a3,color:#000
+  classDef ter fill:#eeeeee,stroke:#666,stroke-dasharray:4 3,color:#000
+  classDef hum fill:#fdebd0,stroke:#ca6f1e,color:#000
+  class LLM,LLM2,LG1 ia
+  class ORQ,ID,PUB,ALR,EMG,VAL,MENU,BUS,AG,RES,LIM,DBM,CAT,DBP,APP,LG2 det
+  class WA,PROV,TEL,LG3 ter
+  class SOP,REV,CONS,M,LG4 hum
