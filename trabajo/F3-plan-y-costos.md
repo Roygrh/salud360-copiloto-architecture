@@ -90,7 +90,7 @@ SUPUESTO: el número de empleados de las tres cuentas no está en el brief; defi
 
 | Se corta | Razón |
 |---|---|
-| Copiloto conversacional dentro de la app | Exige interfaz nueva y publicación en tiendas; no cabe en 2 ingenieros equivalentes. Va primero en las semanas 9-12: mismo backend y sin costo de Meta (B3) |
+| Copiloto conversacional dentro de la app | Exige interfaz nueva y publicación en tiendas; no cabe en 2 ingenieros equivalentes. Va después de abrir el régimen por zonas, a medida que sus sedes quedan publicables: mismo backend y sin costo de Meta (B3) |
 | Psicología y salud mental como punto de entrada | Requiere un protocolo de crisis del consejo. La regla de alarma de crisis sí está activa |
 | Especialidades de acceso directo no aprobadas | Decisión clínica del consejo (§05), no de ingeniería |
 | Sedes fuera de la zona o no publicables | Limpieza imposible en 8 semanas a 0,5 analista (A4) |
@@ -211,7 +211,7 @@ No incluido: horas de ingeniería (16 semanas-ingeniero, A1; el brief no da sala
 
 Consecuencias de diseño:
 - **Cada mensaje saliente cuenta.** Agrupar contenido (chequeo de alarma junto con la pregunta de necesidad; sedes y horarios en una sola lista nativa), usar listas y botones en vez de varios mensajes, no enviar recordatorios ni encuestas en el piloto (A5).
-- **La app es el canal barato:** mismo backend y sin costo de Meta. Es lo primero después de las 8 semanas (A5).
+- **La app es el canal barato:** mismo backend y sin costo de Meta. Va después de abrir el régimen por zonas, a medida que sus sedes quedan publicables (A5).
 - **Argumento a favor de A que no estaba en F2:** si el modelo ahorra al menos un paso de menú por conversación, se paga solo (un mensaje evitado vale ~25 llamadas). Es hipótesis a medir en el experimento del 20%, no un hecho.
 - El costo del canal no depende de la IA: Meta cobra igual el mensaje escrito por una plantilla, una persona o una IA (`04`). La versión B paga el mismo canal.
 

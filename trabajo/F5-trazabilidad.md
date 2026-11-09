@@ -62,7 +62,8 @@ Cada número que aparece en `entregable/copiloto-salud360.md` (D1 a D8), con su 
 | 2 o 3 proveedores en el ensayo de la semana 6 | D7 | F3 A2 | |
 | Calendario: reunión 1 semana 3, reunión 2 semana 7; contingencia semana 4 | D3, D7 | Supuesto F3 A2, A3 | |
 | Semanas 3-5 (campaña de precios), semana 6 (prueba final), semanas 6-7 (sombra interna) | D3, D5, D7 | F3 A2, F4 A3 | |
-| Semanas 9-12 (régimen y app) | D3 | F3 A5, F4 A5 | |
+| Semanas 9-12 (el régimen se abre desde las semanas 9-12, por zonas; la app va después) | D3 | F3 A5, F4 A5 | |
+| 911 | D3 | Dato confirmado por Enrique, fuera del brief; uso en la contingencia según F3 A3 y decisión de F5 | |
 | 5 días hábiles de sombra en producción | D3, D5 | Supuesto F4 A3 | |
 | 400 casos: 200 (40 × 5), 80 (20 retenidos), 60, 30, 30; más 50 salidas fabricadas | D5 | Supuesto F4 A1 | 5 × 40 = 200; 200 + 80 + 60 + 30 + 30 = 400 |
 | Umbrales puerta 1: 100% alarmas, 100% identificadores | D5 | F4 A2 | |

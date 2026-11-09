@@ -34,7 +34,7 @@ Cada fase termina con validación de Enrique antes de pasar a la siguiente.
 - F3: única fuente de precios: `contexto/04-precios-referencia.md` (WhatsApp USD 0,0113 por mensaje saliente; Haiku 5.5 y Opus 5.5 como referencia).
 - F3: ruta crítica: consejo médico, reunión 1 en semana 3 (aprueba catálogo) y reunión 2 en semana 7 (ajustes); contingencia: puntos de entrada sin juicio clínico, solo botones y sin modelo.
 - F3: piloto de semana 8 solo por WhatsApp, para empleados de las tres cuentas corporativas de la demo, sedes publicables de su zona y cinco puntos de entrada (medicina general, odontología, laboratorio e imágenes con orden, nutrición).
-- F3: se cortan el copiloto en la app (primero en semanas 9-12), psicología como punto de entrada, dependientes, recordatorios y modelo para limpieza.
+- F3: se cortan el copiloto en la app (después de abrir el régimen por zonas), psicología como punto de entrada, dependientes, recordatorios y modelo para limpieza.
 - F3: demo del CEO: caso del hombro hasta cita, caso de alarma a emergencias, y apagado del modelo en vivo con el mismo resultado.
 - F3: el costo dominante es el canal WhatsApp, no el modelo (~1.000 veces más en base); se diseña para minimizar mensajes salientes.
 - F3: M2 cuesta ~USD 9,70 por conversación (5,2 veces un contacto de soporte, 95,8% del margen a volumen base): rechazo cuantificado.
