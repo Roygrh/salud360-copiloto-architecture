@@ -14,15 +14,15 @@ Respuesta al challenge "Copiloto Salud360" para el CEO y el panel técnico. Las 
 |---|---|---|
 | M1, CEO: síntomas, especialista y cita | Modificar | "Sí al chat que va de lo que te pasa a la cita. Qué especialista ver lo decide una lista que firma el consejo, no la IA. La reserva es inmediata solo donde hay agenda (41%, §03); en el resto pedimos la cita por el miembro" |
 | M2, CTO: mejor modelo, base en el prompt | Rechazar el método, mantener el objetivo | "Precios y disponibilidad saldrán siempre de la base. Meterla en el prompt no la corrige, cuesta USD 9,70 por conversación y la envía entera a un tercero" |
-| M3, CEO: producción en 8 semanas | Aceptar la fecha, recortar alcance | "En la semana 8 sale un piloto por WhatsApp para tus tres cuentas, con cinco puntos de entrada y datos limpios. No el producto nacional" |
-| M4, CFO: sin costo significativo | Aceptar y cuantificar | "En régimen cuesta unos 4 centavos por miembro al mes (1,34% del margen). Lo que pesa es WhatsApp, no la IA" |
-| M5, jefa de experiencia: WhatsApp | Aceptar con condiciones | "Sí, con consentimiento antes de cualquier texto de salud y botones en vez de texto: Meta cobra cada mensaje" |
+| M3, CEO: producción en 8 semanas | Aceptar la fecha, recortar alcance | "En la semana 8 sale un piloto por WhatsApp para tus tres cuentas, con cinco puntos de entrada (por dónde empezar: medicina general, odontología, etc.) y datos limpios. No el producto nacional" |
+| M4, CFO: sin costo significativo | Aceptar y cuantificar | "En régimen (copiloto abierto a todos los miembros) cuesta unos 4 centavos por miembro al mes (1,34% del margen). Lo que pesa es WhatsApp, no la IA" |
+| M5, jefa de experiencia: WhatsApp | Aceptar con condiciones | "Sí, con consentimiento antes de cualquier texto de salud y botones para acortar la conversación: Meta cobra cada mensaje que enviamos" |
 
-**La idea central.** El producto funciona sin la IA. La IA es una pieza apagable que acorta el camino a quien escribe en vez de tocar botones; si se apaga, el miembro llega a la misma sede con el mismo precio. El problema de fondo no es la falta de IA sino los datos de proveedores: 63% con precios completos, 41% con disponibilidad estructurada, 214 formas de escribir especialidades (§03). Por eso los datos van primero (D2) y el riesgo que puede matar el proyecto está en la red de proveedores, no en el modelo (D7). El ahorro en soporte paga la operación del copiloto; el retorno real es no perder cuentas corporativas en la renovación, y es la hipótesis que se va a medir (D4).
+**La idea central.** El producto funciona sin la IA. La IA es una pieza apagable que acorta el camino a quien escribe en vez de tocar botones; si se apaga, el miembro puede llegar a la misma sede, con el mismo precio, por el menú. El problema de fondo no es la falta de IA sino los datos de proveedores: 63% con precios completos, 41% con disponibilidad estructurada, 214 formas de escribir especialidades (§03). Por eso los datos van primero (D2) y el riesgo que puede matar el proyecto está en la red de proveedores, no en el modelo (D7). El ahorro en soporte paga la operación del copiloto; el retorno real es no perder cuentas corporativas en la renovación, y es la hipótesis que se va a medir (D4).
 
 ## D2. Arquitectura
 
-**Decisión:** un flujo determinista (máquina de estados: el código sabe en qué paso está cada conversación y qué respuestas acepta) que funciona completo sin IA. El modelo es opcional: traduce el texto libre a una opción de una lista cerrada, después de las reglas de alarma. Un interruptor de configuración lo apaga sin desplegar código. Un solo backend sirve a WhatsApp (M5) y a la app (M1).
+**Decisión:** un flujo determinista (máquina de estados: el código sabe en qué paso está cada conversación y qué respuestas acepta) que funciona completo sin IA. El modelo es opcional: traduce el texto libre a una opción de una lista cerrada, después de las reglas de alarma. Un interruptor de configuración lo apaga sin desplegar código. Un solo backend (el servidor que procesa las conversaciones) sirve a WhatsApp (M5) y a la app (M1).
 
 ```mermaid
 flowchart TB
@@ -83,7 +83,7 @@ Colores: rojo, modelo de IA; azul, determinista; gris punteado, tercero; naranja
 | Dónde participa | De qué puede ser autoridad | Qué nunca responde solo |
 |---|---|---|
 | Interpretar el texto libre del miembro | Proponer un punto de entrada de la lista cerrada; el miembro confirma con un botón | Especialista fuera de la lista, diagnóstico, gravedad, cualquier recomendación clínica |
-| Extraer datos logísticos del mismo texto | Ubicación, horario, para quién es la cita; validados contra listas y confirmados | Qué proveedor elegir, precios, disponibilidad, horarios reales |
+| Extraer datos logísticos del mismo texto | Ubicación y horario (para quién es la cita, cuando entren los dependientes); validados contra listas y confirmados | Qué proveedor elegir, precios, disponibilidad, horarios reales |
 | Señal de posible alarma | Solo escalar al mismo mensaje fijo que las reglas | Bajar una urgencia, anular una regla, decir "no es grave" |
 | No participa | Nada | Precios, ranking, agendamiento, consentimiento, identidad, textos al miembro, mensajes a proveedores |
 
@@ -97,22 +97,22 @@ Falla, demora de más de 3 segundos o salida fuera de la lista equivalen a "no s
 | El modelo solo clasifica en la lista del consejo | Recomendar especialista (M1 literal) | Es triaje sin médico en planta (§05) |
 | Precios y disponibilidad por consulta SQL | Base entera en el prompt (M2) | La base está mal en origen; el prompt no la arregla, cuesta en cada mensaje (D4) y la envía a un tercero |
 | Modelo pequeño con salida estructurada (respuesta forzada a un esquema), con ejemplos y sin entrenar | "El mejor modelo" (M2) o clasificador propio | Clasificar en una lista no requiere el modelo más caro; no hay ingenieros de ML ni datos etiquetados (§05) |
-| Todo texto al miembro es plantilla | Respuestas redactadas por el modelo | Sin alucinaciones en lo que lee el miembro; revisión legal simple |
+| Todo texto al miembro es plantilla | Respuestas redactadas por el modelo | El modelo no redacta nada de lo que lee el miembro; revisión legal simple |
 | Alarmas antes del modelo; el modelo solo escala | Que el modelo evalúe urgencia | La seguridad no puede depender de una pieza probabilística que cambia de versión |
-| Medicina general por defecto; telemedicina solo por regla o pedido | Telemedicina ante la duda | Cuesta 9,40 / 1,85 = ~5 contactos de soporte; quedan ~800 consultas libres (3.200 - 2.400, §03) |
-| Servicios administrados: serverless (código por evento sin administrar servidores), base relacional, cola | Servidores propios | Sin SRE; los mismos 4 ingenieros mantienen la app (§05) |
+| Medicina general por defecto; telemedicina solo por regla o pedido | Telemedicina ante la duda | Cuesta 9,40 / 1,85 = ~5 contactos de soporte; quedan ~800 consultas libres (capacidad estimada 3.200 - 2.400, §03) |
+| Servicios administrados: serverless (código por evento sin administrar servidores), base relacional, cola | Servidores propios | Sin SRE (ingeniero de guardia para producción); los mismos 4 ingenieros mantienen la app (§05) |
 
 **Datos de proveedores, fuera de línea.** La analista limpia en lotes: taxonomía para los 214 nombres, duplicados por teléfono compartido (18%) que decide una persona, y precios faltantes (37%) que nunca se estiman (§03). Solo entra la sede "publicable": activa, especialidad canónica, teléfono verificado y precio del servicio.
 
 **Datos de salud y Ley 8968 (§05)**
-- **Consentimiento** por botón antes de cualquier texto libre: qué se procesa, qué terceros lo ven (Meta y el proveedor del modelo), cuánto se guarda, cómo revocar. La letra la valida el abogado.
-- **Se guarda** consentimiento, punto de entrada, sede y estado de la cita. El texto libre se borra al cerrar la conversación y nunca entra en los registros técnicos.
+- **Consentimiento** por botón antes de usar el copiloto; sin consentimiento, solo el directorio público y el teléfono de soporte. El texto del consentimiento explica qué se procesa, qué terceros lo ven (Meta y el proveedor del modelo), cuánto se guarda y cómo revocarlo. La letra la valida el abogado.
+- **Se guarda** consentimiento, punto de entrada, sede y estado de la cita. El texto libre se borra al cerrar la conversación y nunca entra en los registros técnicos. El traspaso a soporte lleva el punto de entrada, la zona y las sedes vistas, nunca el texto libre.
 - **Qué viaja a cada subprocesador** (tercero que procesa datos por cuenta de Salud360): a Meta, lo que el miembro escribe (inevitable con M5). Al proveedor del modelo, solo el texto, tras un filtro que elimina identificadores conocidos (nombre del titular y dependientes, teléfono, afiliado, correo, documento). Al proveedor de la cita, nombre, servicio y horario, nunca síntomas.
 - **Limitación honesta:** no es anónimo. "A mi hija María Rodríguez le duele la muela desde que fuimos a Heredia" trae un tercero y un lugar que el filtro no conoce. Por eso el contrato de subprocesador (sin retención ni entrenamiento) es condición para encender el modelo.
 
 **Agendamiento en tres niveles.** Solo el 41% tiene disponibilidad estructurada y no se puede obligar a nadie (§03, §05).
 1. **Reserva directa** con el motor de reservas de la app (§01).
-2. **Solicitud al proveedor** por plantilla de WhatsApp con botones; sin respuesta en el plazo, siguiente sede. Solo sedes que respondieron a la campaña de precios (prueba de vida), con 2 o 3 sedes ancla por punto de entrada.
+2. **Solicitud al proveedor** por plantilla (mensaje que Meta aprueba antes) de WhatsApp con botones; sin respuesta en el plazo, siguiente sede. Solo sedes que respondieron a la campaña de precios (prueba de vida), con 2 o 3 sedes ancla por punto de entrada.
 3. **Contacto asistido:** teléfono y precio, más traspaso a soporte con contexto.
 
 El ranking premia disponibilidad y confirmación rápida: es el incentivo que Salud360 controla. "En el mismo flujo" es literal solo en el nivel 1.
@@ -123,7 +123,7 @@ El ranking premia disponibilidad y confirmación rápida: es el incentivo que Sa
 
 **Sale en la semana 8 (piloto):** empleados de las tres cuentas más grandes (M3), solo por WhatsApp, sedes publicables de su zona, cinco puntos de entrada (medicina general, odontología, laboratorio e imágenes con orden, nutrición), alarmas para cualquier texto (incluida crisis de salud mental) y los tres niveles de agenda. La IA atiende el 20% del texto libre solo si pasó la prueba de la semana 6, en modo sombra los primeros 5 días hábiles (D5).
 
-**Régimen:** el copiloto abierto a todos los miembros, desde las semanas 9-12. Se abre por zonas, a medida que sus sedes quedan publicables.
+**Piloto:** desde la semana 8, con los empleados de las tres cuentas. La IA queda en sombra en la semana 8 y se hace visible en la semana 9 si pasa; se valida en seguridad y calidad hasta la semana 11. **Régimen** (copiloto abierto a todos los miembros): desde la semana 9, por zonas, a medida que sus sedes quedan publicables, primero sin IA; la IA entra en régimen solo si pasó la validación del piloto. Las cifras de D4 suponen todas las zonas abiertas.
 
 **Se corta**
 - Copiloto en la app: interfaz nueva y tiendas; va después de abrir el régimen por zonas, sin costo de Meta.
@@ -137,6 +137,7 @@ El ranking premia disponibilidad y confirmación rápida: es el incentivo que Sa
 |---|---|
 | 1 | Alta en WhatsApp Business Platform; encargo al abogado; borrador del catálogo clínico |
 | 3 | **Reunión 1 del consejo:** aprueba lista, alarmas y textos |
+| 3-5 | Campaña de precios con las sedes de la zona; registra quién responde (prueba de vida) |
 | 4 | Plantillas de Meta aprobadas; consentimiento y contrato de subprocesador firmados |
 | 6 | Corte final de sedes; prueba final del modelo |
 | 7 | Reunión 2 del consejo: ajustes |
@@ -159,9 +160,9 @@ El ranking premia disponibilidad y confirmación rápida: es el incentivo que Sa
 
 ## D4. Economía unitaria
 
-**Línea base (§03).** 9.000 contactos × USD 1,85 = USD 16.650 al mes; 16.650 / 38.000 = USD 0,44 por miembro, 14,2% del margen de 3,10.
+**Línea base (§03).** 9.000 contactos × USD 1,85 = USD 16.650 al mes; 16.650 / 38.000 = USD 0,44 por miembro, 14,1% del margen de 3,10. Supuesto: margen individual para todos los miembros; el brief no da el margen familiar ni el corporativo, ni si los 38.000 incluyen dependientes (§03, §05).
 
-**Costo por conversación (régimen).** Supuestos: todo por WhatsApp; Meta cobra cada mensaje saliente a 0,0113; 59% (100% - 41%) pasa por nivel 2; modelo al 20%; infraestructura de 200, 500 o 1.000 al mes sobre 11.632 conversaciones. Token: unidad de texto que cobra el modelo.
+**Costo por conversación (régimen).** Supuestos: todo por WhatsApp; Meta cobra cada mensaje saliente a 0,0113; 59% (100% - 41%) pasa por nivel 2 (Supuesto: el 41% de proveedores con agenda se traslada tal cual a conversaciones); modelo al 20%; infraestructura de 200, 500 o 1.000 al mes sobre 11.632 conversaciones. Token: unidad de texto que cobra el modelo.
 
 | Componente | Mínimo | Base | Máximo |
 |---|---|---|---|
@@ -171,9 +172,11 @@ El ranking premia disponibilidad y confirmación rápida: es el incentivo que Sa
 | Infraestructura | 0,0172 | 500 / 11.632 = 0,0430 | 0,0860 |
 | **Total (variable)** | **0,0804 (0,0632)** | **0,1355 (0,0925)** | **0,2262 (0,1402)** |
 
+Modelo: mínimo 2.000 tokens de entrada y 50 de salida, 1 llamada; base 4.000 y 100, 1 llamada; máximo 8.000 y 200, 3 llamadas; siempre al 20%.
+
 **Hallazgo: el costo dominante es WhatsApp, no el modelo.** Canal 0,0791 + 0,0133 = 0,0924 frente a 0,000090: ~1.027 veces. Un mensaje ahorrado paga ~25 llamadas al modelo.
 
-**M2.** Supuesto: 300 tokens por sede. (1.140 × 300 + 3.000) = 345.000 tokens × 4 / 10⁶ + 300 × 20 / 10⁶ = 1,386 por mensaje con Opus 5.5; × 7 = **USD 9,70 por conversación** (5,2 contactos de soporte). × 11.632 = USD 112.830 al mes = **95,8% del margen**. Con un modelo pequeño sigue costando ~385 veces nuestra llamada: falla el método.
+**M2.** Supuesto: 300 tokens por sede. 345.000 tokens por mensaje (1.140 × 300 + 3.000). Con Opus 5.5: 345.000 × 4 / 10⁶ + 300 × 20 / 10⁶ = 1,386 por mensaje; × 7 = **USD 9,70 por conversación** (5,2 contactos de soporte). × 11.632 = USD 112.830 al mes = **95,8% del margen**. Con un modelo pequeño sigue costando ~385 veces nuestra llamada: falla el método.
 
 **Desplazamiento real (régimen).** Contactos evitados = 9.000 × (a) × (b) × (c), todo Supuesto.
 
@@ -181,7 +184,7 @@ El ranking premia disponibilidad y confirmación rápida: es el incentivo que Sa
 |---|---|---|---|
 | (a) "¿A dónde voy?" × (b) adopción | 30% × 30% | 50% × 50% | 70% × 70% |
 | (c) Sin soporte: 41% + 59% × confirmación (20/40/60%) | 52,8% | 64,6% | 76,4% |
-| Evitados (% de 9.000); ahorro × 1,85 | 428 (4,8%); 791,80 | 1.454 (16,2%); 2.689,90 | 3.369 (37,4%); 6.232,65 |
+| Evitados (% de 9.000); ahorro × 1,85 | 428 (4,76%); 791,80 | 1.454 (16,2%); 2.689,90 | 3.369 (37,4%); 6.232,65 |
 | Conversaciones por evitado (Supuesto) | 11 → 4.708 | 8 → 11.632 | 6 → 20.214 |
 | Costo: conversaciones × 0,0925 + 500 | 935,49 | 1.575,96 | 2.369,80 |
 | **Neto mensual** | **-143,69** | **+1.113,94** | **+3.862,85** |
@@ -191,7 +194,7 @@ Referencia, no derivación: hoy hay 96.000 / 9.000 = 10,7 búsquedas en el direc
 
 **Por contacto evitado (base):** 8 × 0,1355 = **USD 1,08 frente a 1,85**. En el conservador no se paga: la nube fija (500) supera el ahorro neto del variable (791,80 - 435,49 = 356,31). El ahorro es caja solo si soporte ajusta dotación (CFO).
 
-**Retorno por renovación.** El ahorro paga la operación; el retorno real es no perder cuentas. Supuesto: cuenta de 30 empleados × USD 10 (§01) = 300 al mes. Retener 1.113,94 / 300 = 3,71 → 4 cuentas iguala el neto base; 1 cuenta cubre la pérdida conservadora (143,69 / 300 = 0,48). Advertencias: es ingreso, no margen; no sabemos cuántas cuentas se pierden; la mejora en renovación es hipótesis.
+**Retorno por renovación.** El ahorro paga la operación; el retorno real es no perder cuentas. Supuesto: cuenta de 30 empleados × USD 10 (§01) = 300 al mes. 4 cuentas de 30 empleados retenidas (4 × 300 = 1.200 al mes de ingreso) superan todo el ahorro neto de soporte del escenario base (1.113,94); 1 cuenta cubre la pérdida conservadora (143,69 / 300 = 0,48). Advertencias: es ingreso, no margen; hoy renueva el 71% de las cuentas de menos de 50 empleados (§03), es decir, el 29% no renueva; no sabemos cuántas cuentas son ni cuánto puede mejorar esa cifra; la mejora en renovación es hipótesis.
 
 **Sensibilidad (base).** Deja de convenir con tarifa de Meta sobre 0,0230 (2,0 veces la actual), más de 15 mensajes o 16,3 conversaciones por contacto evitado, o ~1% de conversaciones derivadas de más a telemedicina (1.113,94 / 9,40 = 118,5).
 
@@ -206,8 +209,8 @@ Referencia, no derivación: hoy hay 96.000 / 9.000 = 10,7 búsquedas en el direc
 | Puerta | Umbral | Si no pasa |
 |---|---|---|
 | 1. Cualquier texto libre, incluida la versión sin IA | Alarmas: 100% de las 80 en el nivel correcto. Filtro: 100% de identificadores conocidos | Sin alarmas: solo botones (D3). Sin filtro: modelo apagado |
-| 2. Encender el modelo (con contrato firmado) | Validador rechaza las 50; acierto ≥ 80%; equivocada ≤ 5%; "no sé" ≤ 15%; ≥ 10 puntos sobre el diccionario sin IA | Modelo apagado; se ajusta y se reintenta |
-| 2. Seguridad | 0 alarmas rebajadas; 0 salidas fuera de lista; estabilidad ≥ 98% en 3 corridas; ≤ 3 s | Ídem |
+| 2a. Encender el modelo (con contrato firmado) | Validador rechaza las 50; acierto ≥ 80%; equivocada ≤ 5%; "no sé" ≤ 15%; ≥ 10 puntos sobre el diccionario sin IA | Modelo apagado; se ajusta y se reintenta |
+| 2b. Seguridad | 0 alarmas rebajadas; 0 salidas fuera de lista; estabilidad ≥ 98% en 3 corridas; ≤ 3 s | Ídem |
 
 Si no supera al diccionario, encender el modelo solo agrega un subprocesador.
 
@@ -215,9 +218,11 @@ Si no supera al diccionario, encender el modelo solo agrega un subprocesador.
 
 **Después.** Eventos con códigos y versiones, nunca texto del miembro; asignación por miembro; responsable de la semana rotativo entre los 4 ingenieros, sin guardia (el modelo se degrada solo a menú).
 
+Punto de partida: hoy 96.000 × 4,8% = ~4.600 búsquedas al mes terminan en cita (§03); falta saber qué cuenta como cita (D7).
+
 | Métrica | Alerta (Supuesto) |
 |---|---|
-| Conversión a cita o solicitud, con IA frente a sin IA | Con IA 5 puntos por debajo en una semana |
+| Conversión a cita o solicitud, con IA frente a sin IA | Con IA 10 puntos por debajo en una semana, o 5 puntos en el acumulado de 4 semanas |
 | Corrección del miembro | > 15% semanal |
 | "No sé" del modelo | > 25% en un día |
 | Alarmas no detectadas | Cualquier caso: el modelo se apaga |
@@ -226,7 +231,7 @@ Si no supera al diccionario, encender el modelo solo agrega un subprocesador.
 | Respuesta de proveedores | < 40%; < 20% crítico |
 | Mensajes al miembro por conversación | > 10 |
 
-**Piloto frente a régimen.** En el piloto el modelo se valida solo en seguridad y calidad: cero alarmas mal resueltas, corrección ≤ 15%, "no sé" sin alerta; si falla, el régimen abre sin IA. La decisión con IA frente a sin IA se toma en régimen: 500 conversaciones con texto libre con IA y 2.000 sin IA dan 2 × raíz(0,25 / 500 + 0,25 / 2.000) = ± 5 puntos, es decir 625 por semana en 4 semanas, que tres cuentas no alcanzan. Criterio previo: sube al 100% con ≥ 5 puntos de mejora; se apaga con 5 de pérdida o corrección > 25%; empate, sube solo si ahorra 1 mensaje. Sin volumen, se extiende en bloques de 2 semanas hasta 8.
+**Piloto frente a régimen.** En el piloto el modelo se valida solo en seguridad y calidad: cero alarmas mal resueltas, corrección ≤ 15%, "no sé" sin alerta; si falla, el régimen abre sin IA. La decisión con IA frente a sin IA se toma en régimen: 500 conversaciones con texto libre con IA y 2.000 sin IA dan 2 × raíz(0,25 / 500 + 0,25 / 2.000) = ± 5 puntos (margen de error con 95% de confianza), es decir 625 por semana en 4 semanas, que tres cuentas no alcanzan. Criterio previo: sube al 100% con ≥ 5 puntos de mejora; se apaga con 5 de pérdida o corrección > 25%; empate, sube solo si ahorra 1 mensaje. Sin volumen, se extiende en bloques de 2 semanas hasta 8.
 
 **La mañana en que cambia la versión del modelo (§06)**
 
@@ -243,7 +248,7 @@ Respuesta:
 6. Falla pasajera: reenciende. Versión retirada: puerta 2 completa y 5 días de sombra (1 a 3 días).
 7. La analista excluye esos días de la comparación.
 
-Peor caso: el 20% ve unas horas lo mismo que el 80%.
+Peor caso: si el proveedor cambia el comportamiento sin cambiar el identificador de versión, hasta 24 horas de propuestas peores para el 20%, hasta la corrida de las 6:00; siempre dentro de la lista, confirmadas por el miembro y con las alarmas intactas.
 
 ## D6. La versión sin IA
 
@@ -259,6 +264,8 @@ Peor caso: el 20% ve unas horas lo mismo que el 80%.
 
 ## D7. Lo que el brief no dice
 
+Ordenadas por cuánto cambian el diseño si la respuesta es distinta al supuesto.
+
 | Pregunta (a quién) | Supuesto | Qué cambia si es falso |
 |---|---|---|
 | ¿La Ley 8968 permite texto libre de salud por WhatsApp y al proveedor del modelo con botón, filtro y contrato? (abogado, §05) | Sí | Sin modelo: solo versión sin IA. Sin texto libre en WhatsApp: botones ahí, texto en la app |
@@ -272,7 +279,7 @@ Peor caso: el 20% ve unas horas lo mismo que el 80%.
 
 **Contradicciones de §03.** 500 frente a 748 proveedores: usamos sedes (1.140) y una bandera de activo verificada. 11.300 contactos "¿a dónde voy?" superan los 9.000 totales: usamos 9.000, el dato medido, como techo.
 
-**El riesgo que puede matar el proyecto: los proveedores no responden.** La mitad no contesta (§02), solo el 41% tiene agenda (§03) y no se les puede obligar (§05): el 59% de las conversaciones depende de que alguien responda un WhatsApp. Ninguna pieza lo compensa: el copiloto llevaría al miembro más rápido al mismo muro. Es silencioso: la demo funciona con un proveedor coordinado. Con 20% de respuesta caemos en el conservador (-143,69 al mes).
+**El riesgo que puede matar el proyecto: los proveedores no responden.** La mitad no contesta, según la jefa de experiencia (§02), solo el 41% tiene agenda (§03) y no se les puede obligar (§05): el 59% de las conversaciones depende de que alguien responda un WhatsApp. Ninguna pieza lo compensa: el copiloto llevaría al miembro más rápido al mismo muro. Es silencioso: la demo funciona con un proveedor coordinado. Con 20% de respuesta caemos en el conservador (-143,69 al mes).
 
 Detección temprana: en las semanas 3-5 la campaña de precios registra quién responde y en cuánto tiempo; en la semana 6, ensayo con 2 o 3 proveedores reales. Bajo 40% es alerta; bajo 20% obliga a rediseñar el alcance antes de la semana 8.
 
@@ -282,7 +289,9 @@ Mitigación (facilitar, no obligar): prueba de vida para el nivel 2; sedes ancla
 
 **Herramientas y modelos.** Usé dos herramientas, ambas con el modelo Claude Opus 5.5:
 - Claude en el chat del navegador: para analizar el brief, hacer el diagnóstico del mandato, buscar y verificar los precios con su fuente, escribir las instrucciones de cada fase y revisar cada resultado.
-- Claude Code: para redactar los archivos de trabajo y este documento, y para verificar los cálculos con scripts. Revisé y corregí cada fase antes de pasar a la siguiente.
+- Claude Code: para redactar los archivos de trabajo y este documento, y para verificar los cálculos con scripts.
+
+Revisé y corregí cada fase antes de pasar a la siguiente.
 
 **Un caso donde la IA se equivocó con confianza.** En el diagnóstico, la IA afirmó que Meta cobra WhatsApp "por conversación" y que las respuestas dentro de la ventana de 24 horas son gratis. Era información desactualizada: Meta cobra por mensaje desde julio de 2025 y cobra también las respuestas desde octubre de 2026. Se detectó al buscar los precios oficiales de Meta para D4. Cambió la conclusión: con el cobro por mensaje, el costo dominante es el canal (~1.000 veces el modelo), no la IA. De ahí salen decisiones de diseño: contar cada mensaje saliente, agrupar contenido, cortar recordatorios y priorizar la app como canal barato. Desde entonces solo se usan precios verificados con fuente.
 

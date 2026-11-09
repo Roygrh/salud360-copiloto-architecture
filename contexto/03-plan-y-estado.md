@@ -57,6 +57,9 @@ Cada fase termina con validación de Enrique antes de pasar a la siguiente.
 - F5: definición de régimen: el copiloto abierto a todos los miembros, desde las semanas 9-12. Se usa igual en D3, D4 y D5.
 - F5: el régimen se abre por zonas a medida que sus sedes quedan publicables; el copiloto en la app va después.
 - F5: en la contingencia, el aviso de emergencias es texto estándar con el 911 aprobado por el abogado y ratificado por el consejo.
+- F5 (C5): piloto desde la semana 8 con los empleados de las tres cuentas; IA en sombra en la semana 8, visible en la semana 9 si pasa, validada en seguridad y calidad hasta la semana 11. Régimen desde la semana 9, por zonas, primero sin IA; la IA entra en régimen solo si pasó la validación del piloto.
+- F5 (C8): sin consentimiento, el miembro solo tiene el directorio público y el teléfono de soporte; el traspaso a soporte lleva punto de entrada, zona y sedes vistas, nunca el texto libre.
+- F5 (C6): la alerta de conversión con IA frente a sin IA salta con 10 puntos por debajo en una semana o 5 puntos en el acumulado de 4 semanas.
 
 ## Supuestos vigentes
 - Contactos de soporte: se usa 9.000 al mes como techo (dato medido).

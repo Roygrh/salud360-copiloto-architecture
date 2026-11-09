@@ -27,7 +27,11 @@ Cada número que aparece en `entregable/copiloto-salud360.md` (D1 a D8), con su 
 | 8 semanas | todo | M3 (§04) | |
 | Tres cuentas corporativas | D1, D3, D5, D7 | M3 (§04) | |
 | Una reunión del consejo al mes | D3 | §05 | |
-| Mitad de proveedores no contesta | D1, D7 | §02 | |
+| Mitad de proveedores no contesta | D1, D7 | §02 (lo dice la jefa de experiencia; en D7 se atribuye así) | |
+| 71% de renovación de cuentas de menos de 50 empleados | D4 | §03 | |
+| 29% no renueva | D4 | Cálculo sobre §03 | 100% - 71% |
+| 4,8% de búsquedas que terminan en cita | D5 | §03 | |
+| ~4.600 búsquedas al mes que terminan en cita | D5 | Cálculo sobre §03 | 96.000 × 4,8% = 4.608 |
 
 ## Precios externos (contexto/04)
 
@@ -50,7 +54,7 @@ Cada número que aparece en `entregable/copiloto-salud360.md` (D1 a D8), con su 
 | 14 semanas asignadas, 2 de reserva | D3 | Supuesto F3 A1 | 16 - 14 = 2 |
 | 5, 7 y 10 mensajes al miembro | D4 | Supuesto F3 B2 | |
 | 1, 2 y 4 mensajes al proveedor | D4 | Supuesto F3 B2 | |
-| 4.000 tokens de entrada y 100 de salida (base) | D4 | Supuesto F3 B2 | |
+| Modelo: 2.000, 4.000 y 8.000 tokens de entrada; 50, 100 y 200 de salida; 1, 1 y 3 llamadas (mínimo, base, máximo) | D4 | Supuesto F3 B2 (línea bajo la tabla de costo por conversación) | |
 | Modelo al 20% del texto libre | D2, D3, D4, D5 | Decisión F2 | |
 | Infraestructura 200, 500 y 1.000 al mes | D4 | Supuesto F3 B2 | |
 | 300 tokens por sede; 3.000 de instrucciones; 300 de respuesta | D4 | Supuesto F3 B4 | |
@@ -62,14 +66,14 @@ Cada número que aparece en `entregable/copiloto-salud360.md` (D1 a D8), con su 
 | 2 o 3 proveedores en el ensayo de la semana 6 | D7 | F3 A2 | |
 | Calendario: reunión 1 semana 3, reunión 2 semana 7; contingencia semana 4 | D3, D7 | Supuesto F3 A2, A3 | |
 | Semanas 3-5 (campaña de precios), semana 6 (prueba final), semanas 6-7 (sombra interna) | D3, D5, D7 | F3 A2, F4 A3 | |
-| Semanas 9-12 (el régimen se abre desde las semanas 9-12, por zonas; la app va después) | D3 | F3 A5, F4 A5 | |
+| Piloto: semana 8 (sale, IA en sombra), semana 9 (IA visible si pasa), semana 11 (fin de la validación en seguridad y calidad); régimen desde la semana 9, por zonas, primero sin IA | D3 | Decisión F5 (revisión general, C5); reemplaza "semanas 9-12" | |
 | 911 | D3 | Dato confirmado por Enrique, fuera del brief; uso en la contingencia según F3 A3 y decisión de F5 | |
 | 5 días hábiles de sombra en producción | D3, D5 | Supuesto F4 A3 | |
 | 400 casos: 200 (40 × 5), 80 (20 retenidos), 60, 30, 30; más 50 salidas fabricadas | D5 | Supuesto F4 A1 | 5 × 40 = 200; 200 + 80 + 60 + 30 + 30 = 400 |
 | Umbrales puerta 1: 100% alarmas, 100% identificadores | D5 | F4 A2 | |
 | Umbrales puerta 2: ≥ 80%, ≤ 5%, ≤ 15%, ≥ 10 puntos, 0, 0, ≥ 98% en 3 corridas, ≤ 3 s | D2, D5 | Supuesto F4 A2 | |
 | Coincidencia ≥ 80% para salir de sombra | D5 | Supuesto F4 A3 | |
-| Alertas: 5 puntos, > 15%, > 25%, > 0,5%, > 40%, < 40% y < 20%, > 10 mensajes | D5, D7 | Supuesto F4 A4 | |
+| Alertas: 10 puntos en una semana o 5 en el acumulado de 4 semanas, > 15%, > 25%, > 0,5%, > 40%, < 40% y < 20%, > 10 mensajes | D5, D7 | Supuesto F4 A4; umbral semanal subido de 5 a 10 puntos en la revisión general (C6), para que no salte por ruido | |
 | 500 conversaciones con IA y 2.000 sin IA | D5 | Supuesto F4 A5 | 500 / 0,20 = 2.500; 2.500 - 500 = 2.000 |
 | Criterio en régimen: ≥ 5 puntos, 5 puntos de pérdida, corrección > 25%, 1 mensaje | D5 | Supuesto F4 A5 | |
 | Bloques de 2 semanas hasta 8 | D5 | F4 A5 | |
@@ -89,7 +93,7 @@ Cada número que aparece en `entregable/copiloto-salud360.md` (D1 a D8), con su 
 | 59% al nivel 2 | D4, D7 | Supuesto con cálculo F3 B2 | 100% - 41% |
 | USD 16.650 al mes | D4 | Cálculo F1 A2, F3 B1 | 9.000 × 1,85 |
 | USD 0,44 por miembro | D4 | Cálculo F3 B1 | 16.650 / 38.000 |
-| 14,2% del margen | D4 | Cálculo F3 B1 | 0,44 / 3,10 |
+| 14,1% del margen | D4 | Cálculo F3 B1 (corregido en la revisión general) | 16.650 / 38.000 / 3,10 = 14,13% |
 | 0,0565; 0,0791; 0,1130 | D4 | Cálculo F3 B2 | 5, 7, 10 × 0,0113 |
 | 0,0067; 0,0133; 0,0267 | D4 | Cálculo F3 B2 | 0,59 × 1, 2, 4 × 0,0113 |
 | 0,000045; 0,000090; 0,000540 | D4 | Cálculo F3 B2 | (llamada) × 0,20; base (4.000 × 0,10 + 100 × 0,50) / 10⁶ = 0,000450 |
@@ -107,7 +111,7 @@ Cada número que aparece en `entregable/copiloto-salud360.md` (D1 a D8), con su 
 | ~385 veces (método M2 con modelo pequeño) | D4 | Cálculo F3 B4 | 0,1733 / 0,00045 |
 | 52,8%; 64,6%; 76,4% | D4 | Cálculo F3 B5 | 41% + 59% × 20%, 40%, 60% |
 | 428; 1.454; 3.369 contactos evitados | D4 | Cálculo F3 B5 | 9.000 × a × b × c |
-| 4,8%; 16,2%; 37,4% | D4 | Cálculo F3 B5 | evitados / 9.000 |
+| 4,76%; 16,2%; 37,4% | D4 | Cálculo F3 B5 (conservador con dos decimales para no confundirlo con el 4,8% de conversión) | evitados / 9.000; 428 / 9.000 = 4,76% |
 | 791,80; 2.689,90; 6.232,65 | D4 | Cálculo F3 B5 | evitados × 1,85 |
 | 10,7 búsquedas por contacto | D4 (línea de referencia bajo la tabla; no deriva 11, 8 ni 6) | Cálculo F3 B5 | 96.000 / 9.000 |
 | 4.708; 11.632; 20.214 conversaciones | D4, D5 | Cálculo F3 B5 | evitados × 11, 8, 6 |
@@ -118,7 +122,7 @@ Cada número que aparece en `entregable/copiloto-salud360.md` (D1 a D8), con su 
 | 0,79%; 1,34%; 2,01% del margen | D1, D4 | Cálculo F3 B6 | por miembro / 3,10 |
 | USD 1,08 por contacto evitado | D4 (ya no en el paso 7 de la demo de D3) | Cálculo F3 B5 | 8 × 0,1355 |
 | USD 300 al mes por cuenta | D4 | Cálculo F3 B8 | 30 × 10 |
-| 3,71 → 4 cuentas | D4 | Cálculo F3 B8 | 1.113,94 / 300 |
+| 4 cuentas; USD 1.200 al mes de ingreso | D4 | Cálculo F3 B8 | 4 × 300 = 1.200 > 1.113,94 (1.113,94 / 300 = 3,71) |
 | 0,48 → 1 cuenta | D4 | Cálculo F3 B8 | 143,69 / 300 |
 | USD 0,0230 por mensaje (2,0 veces) | D4 | Cálculo F3 B7 | (0,1883 - 0,0001) / 8,18; 0,0230 / 0,0113 |
 | Más de 15 mensajes | D4 | Cálculo F3 B7 | (0,1883 - 0,0133 - 0,0001) / 0,0113 = 15,5 |
@@ -127,4 +131,4 @@ Cada número que aparece en `entregable/copiloto-salud360.md` (D1 a D8), con su 
 | ± 5 puntos | D5 | Cálculo F4 A5 | 2 × raíz(0,25 / 500 + 0,25 / 2.000) = 2 × 0,025 |
 | 625 por semana | D5, D8 | Cálculo F4 A5 | 2.500 / 4 |
 | USD 0,18 por corrida; USD 5,40 al mes | D5 | Cálculo F4 A6 | 400 × 0,000450; × 30 |
-| 20% y 80% (peor caso de la mañana) | D5 | F4 A6 | 100% - 20% |
+| Hasta 24 horas para el 20% (peor caso de la mañana) | D5 | Revisión general (C7) | intervalo entre dos corridas diarias de las 6:00 |
