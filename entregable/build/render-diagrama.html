@@ -1,0 +1,61 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>body{font-family:'Segoe UI', Arial, sans-serif}</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script></head><body>
+<pre id="src" style="display:none">flowchart TB
+  M([Miembro]) --&gt; WA[WhatsApp / Meta]
+  APP[App actual] --&gt; ORQ
+  WA --&gt; ORQ[Orquestador&lt;br/&gt;máquina de estados&lt;br/&gt;plantillas fijas]
+
+  subgraph EnLinea[Flujo del miembro]
+    ORQ --&gt; ID[Identidad y&lt;br/&gt;consentimiento]
+    ID --&gt;|no miembro o no acepta| PUB[Directorio público]
+    ID --&gt;|consentimiento aceptado| ALR[Reglas de alarma]
+    ALR --&gt;|emergencia| EMG[Mensaje fijo:&lt;br/&gt;emergencias]
+    ALR --&gt;|atención pronta| TEL[Telemedicina&lt;br/&gt;clínicos por consulta]
+    ALR --&gt;|&quot;sin alarma, texto libre 20%,&lt;br/&gt;identificadores conocidos eliminados&quot;| LLM[Modelo de IA:&lt;br/&gt;propone punto de entrada]
+    ALR --&gt;|&quot;sin alarma, botones o 80%&quot;| MENU[Menú con botones]
+    LLM -.-&gt;|&quot;posible alarma: solo escala&quot;| ALR
+    LLM --&gt; VAL[Validador:&lt;br/&gt;lista cerrada +&lt;br/&gt;confirma el miembro]
+    VAL --&gt;|falla o no sé| MENU
+    VAL --&gt; BUS[Búsqueda y ranking&lt;br/&gt;SQL]
+    MENU --&gt; BUS
+    BUS --&gt; AG[Agendamiento&lt;br/&gt;3 niveles]
+    AG --&gt;|nivel 1| RES[Reserva de la app]
+    AG --&gt;|nivel 2| PROV[Proveedor responde&lt;br/&gt;por WhatsApp]
+    AG --&gt;|nivel 3| SOP[Soporte humano&lt;br/&gt;con contexto]
+  end
+
+  subgraph Datos[Datos]
+    DBM[(Miembros)]
+    CAT[(Catálogo clínico&lt;br/&gt;puntos de entrada y alarmas)]
+    DBP[(Catálogo de&lt;br/&gt;proveedores limpio)]
+  end
+
+  subgraph FueraDeLinea[Fuera de línea]
+    CONS[Consejo médico&lt;br/&gt;mensual] --&gt; CAT
+    LIM[Limpieza por reglas] --&gt; REV[Revisión analista] --&gt; DBP
+    LLM2[Modelo de IA:&lt;br/&gt;propone mapeos] --&gt; REV
+  end
+
+  ID --- DBM
+  ALR --- CAT
+  VAL --- CAT
+  BUS --- DBP
+
+  classDef ia fill:#f9d6d5,stroke:#c0392b,stroke-width:2px,color:#000
+  classDef det fill:#d6eaf8,stroke:#2471a3,color:#000
+  classDef ter fill:#eeeeee,stroke:#666,stroke-dasharray:4 3,color:#000
+  classDef hum fill:#fdebd0,stroke:#ca6f1e,color:#000
+  class LLM,LLM2 ia
+  class ORQ,ID,PUB,ALR,EMG,VAL,MENU,BUS,AG,RES,LIM,DBM,CAT,DBP,APP det
+  class WA,PROV,TEL ter
+  class SOP,REV,CONS,M hum</pre><div id="out"></div>
+<script>
+mermaid.initialize({startOnLoad:false, securityLevel:'strict', theme:'base',
+  htmlLabels:false, fontFamily:"'Segoe UI', Arial, sans-serif",
+  flowchart:{htmlLabels:false, useMaxWidth:true, curve:'basis', nodeSpacing:8, rankSpacing:18, padding:6, subGraphTitleMargin:{top:30, bottom:50}},
+  themeVariables:{fontFamily:"'Segoe UI', Arial, sans-serif", fontSize:'28px'}});
+mermaid.render('d2svg', document.getElementById('src').textContent)
+  .then(function(r){ document.getElementById('out').innerHTML = r.svg; })
+  .catch(function(e){ document.getElementById('out').textContent = 'ERROR_MERMAID ' + e; });
+</script></body></html>

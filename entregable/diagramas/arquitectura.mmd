@@ -1,4 +1,4 @@
-flowchart LR
+flowchart TB
   M([Miembro]) --> WA[WhatsApp / Meta]
   APP[App actual] --> ORQ
   WA --> ORQ[Orquestador<br/>máquina de estados<br/>plantillas fijas]
@@ -34,13 +34,6 @@ flowchart LR
     LLM2[Modelo de IA:<br/>propone mapeos] --> REV
   end
 
-  subgraph Leyenda[Leyenda]
-    LG1[Modelo de IA]
-    LG2[Determinista]
-    LG3[Tercero]
-    LG4[Persona]
-  end
-
   ID --- DBM
   ALR --- CAT
   VAL --- CAT
@@ -50,7 +43,7 @@ flowchart LR
   classDef det fill:#d6eaf8,stroke:#2471a3,color:#000
   classDef ter fill:#eeeeee,stroke:#666,stroke-dasharray:4 3,color:#000
   classDef hum fill:#fdebd0,stroke:#ca6f1e,color:#000
-  class LLM,LLM2,LG1 ia
-  class ORQ,ID,PUB,ALR,EMG,VAL,MENU,BUS,AG,RES,LIM,DBM,CAT,DBP,APP,LG2 det
-  class WA,PROV,TEL,LG3 ter
-  class SOP,REV,CONS,M,LG4 hum
+  class LLM,LLM2 ia
+  class ORQ,ID,PUB,ALR,EMG,VAL,MENU,BUS,AG,RES,LIM,DBM,CAT,DBP,APP det
+  class WA,PROV,TEL ter
+  class SOP,REV,CONS,M hum

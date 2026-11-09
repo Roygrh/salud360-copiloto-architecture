@@ -25,7 +25,7 @@ Respuesta al challenge "Copiloto Salud360" para el CEO y el panel técnico. Las 
 **Decisión:** un flujo determinista (máquina de estados: el código sabe en qué paso está cada conversación y qué respuestas acepta) que funciona completo sin IA. El modelo es opcional: traduce el texto libre a una opción de una lista cerrada, después de las reglas de alarma. Un interruptor de configuración lo apaga sin desplegar código. Un solo backend sirve a WhatsApp (M5) y a la app (M1).
 
 ```mermaid
-flowchart LR
+flowchart TB
   M([Miembro]) --> WA[WhatsApp / Meta]
   APP[App actual] --> ORQ
   WA --> ORQ[Orquestador<br/>máquina de estados<br/>plantillas fijas]
@@ -61,13 +61,6 @@ flowchart LR
     LLM2[Modelo de IA:<br/>propone mapeos] --> REV
   end
 
-  subgraph Leyenda[Leyenda]
-    LG1[Modelo de IA]
-    LG2[Determinista]
-    LG3[Tercero]
-    LG4[Persona]
-  end
-
   ID --- DBM
   ALR --- CAT
   VAL --- CAT
@@ -77,11 +70,13 @@ flowchart LR
   classDef det fill:#d6eaf8,stroke:#2471a3,color:#000
   classDef ter fill:#eeeeee,stroke:#666,stroke-dasharray:4 3,color:#000
   classDef hum fill:#fdebd0,stroke:#ca6f1e,color:#000
-  class LLM,LLM2,LG1 ia
-  class ORQ,ID,PUB,ALR,EMG,VAL,MENU,BUS,AG,RES,LIM,DBM,CAT,DBP,APP,LG2 det
-  class WA,PROV,TEL,LG3 ter
-  class SOP,REV,CONS,M,LG4 hum
+  class LLM,LLM2 ia
+  class ORQ,ID,PUB,ALR,EMG,VAL,MENU,BUS,AG,RES,LIM,DBM,CAT,DBP,APP det
+  class WA,PROV,TEL ter
+  class SOP,REV,CONS,M hum
 ```
+
+Colores: rojo, modelo de IA; azul, determinista; gris punteado, tercero; naranja, persona. La línea punteada indica que el modelo solo puede escalar una alarma.
 
 **Fronteras del modelo (§06)**
 
@@ -287,8 +282,7 @@ Mitigación (facilitar, no obligar): prueba de vida para el nivel 2; sedes ancla
 
 **Herramientas y modelos.** Usé dos herramientas, ambas con el modelo Claude Opus 5.5:
 - Claude en el chat del navegador: para analizar el brief, hacer el diagnóstico del mandato, buscar y verificar los precios con su fuente, escribir las instrucciones de cada fase y revisar cada resultado.
-- Claude Code: para redactar los archivos de trabajo y este documento, y para verificar los cálculos con scripts.
-Revisé y corregí cada fase antes de pasar a la siguiente.
+- Claude Code: para redactar los archivos de trabajo y este documento, y para verificar los cálculos con scripts. Revisé y corregí cada fase antes de pasar a la siguiente.
 
 **Un caso donde la IA se equivocó con confianza.** En el diagnóstico, la IA afirmó que Meta cobra WhatsApp "por conversación" y que las respuestas dentro de la ventana de 24 horas son gratis. Era información desactualizada: Meta cobra por mensaje desde julio de 2025 y cobra también las respuestas desde octubre de 2026. Se detectó al buscar los precios oficiales de Meta para D4. Cambió la conclusión: con el cobro por mensaje, el costo dominante es el canal (~1.000 veces el modelo), no la IA. De ahí salen decisiones de diseño: contar cada mensaje saliente, agrupar contenido, cortar recordatorios y priorizar la app como canal barato. Desde entonces solo se usan precios verificados con fuente.
 
@@ -298,4 +292,4 @@ Revisé y corregí cada fase antes de pasar a la siguiente.
 
 **Una parte que nunca delegaría a un modelo.** La decisión de qué no construir. En este caso, decidí no construir un modelo de IA que le diga al miembro a qué especialista ir según sus síntomas. Esa decisión no depende de tener más información, sino de asumir una responsabilidad: afecta la salud de una persona. Un modelo puede ayudarme a ordenar los argumentos a favor y en contra, pero la decisión la tomo yo, y soy yo quien responde por ella ante el CEO, el regulador y el propio miembro.
 
-**Tiempo total aproximado.** Tiempo total aproximado: 3 horas efectivas, repartidas en 6 sesiones entre el 28 de octubre y el 9 de noviembre de 2026, incluyendo lectura del brief, revisión de cada fase y ejecución con Claude Code.
+**Tiempo total aproximado**: 3 horas efectivas, repartidas en 6 sesiones entre el 28 de octubre y el 9 de noviembre de 2026, incluyendo lectura del brief, revisión de cada fase y ejecución con Claude Code.

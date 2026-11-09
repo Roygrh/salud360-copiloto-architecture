@@ -10,7 +10,7 @@
 | F3 | Plan de 8 semanas (D3) y economía unitaria (D4) | `trabajo/F3-plan-y-costos.md` | Hecho, corregido, pendiente validación |
 | F4 | Validación y operación (D5), preguntas y riesgos (D7) | `trabajo/F4-operacion-y-riesgos.md` | Hecho, corregido, pendiente validación |
 | F5 | D1 al final, recorte a 8 páginas, D8 | `entregable/copiloto-salud360.md` | Hecho, corregido, pendiente validación |
-| F6 | Exportar PDF, revisar defendibilidad, preparar pitch de 10 min | PDF enviado | Pendiente |
+| F6 | Exportar PDF, revisar defendibilidad, preparar pitch de 10 min | `entregable/copiloto-salud360.pdf` (script `herramientas/generar-pdf.py`) | PDF generado, pendiente validación: 9 páginas, D1 a D7 en 8 (D8 en la página 9). Diagrama vertical (TB en el .md y en `arquitectura.mmd`) y simplificado: leyenda como línea de texto bajo el diagrama; letra efectiva 7,4 pt |
 
 Cada fase termina con validación de Enrique antes de pasar a la siguiente.
 

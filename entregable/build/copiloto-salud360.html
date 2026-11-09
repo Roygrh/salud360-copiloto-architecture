@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Copiloto Salud360: propuesta de arquitectura</title>
+<style>
+@page { size: A4; margin: 2cm; }
+html { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #111; background: #fff; }
+body { margin: 0; line-height: 1.35; }
+* {
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "clig" 0, "dlig" 0, "hlig" 0;
+  hyphens: none; -webkit-hyphens: none;
+}
+h1 { font-size: 16pt; margin: 0 0 4pt 0; }
+h2 { font-size: 12.5pt; margin: 12pt 0 4pt 0; border-bottom: 0.75pt solid #999; padding-bottom: 2pt; break-after: avoid; }
+h1 + p, h1 + p + p { margin: 2pt 0; }
+p { margin: 4pt 0; }
+ul, ol { margin: 3pt 0; padding-left: 16pt; }
+li { margin: 1pt 0; }
+table { width: 100%; border-collapse: collapse; margin: 5pt 0; table-layout: auto; break-inside: auto; }
+th, td { border: 0.5pt solid #888; padding: 2pt 4pt; vertical-align: top; text-align: left; overflow-wrap: break-word; }
+th { background: #eee; }
+tr { break-inside: avoid; }
+.diagrama { margin: 6pt 0; break-inside: avoid; text-align: center; }
+.diagrama svg { width: 100%; height: auto; max-height: 17cm; }
+.nueva-pagina { break-before: page; }
+.nw { white-space: nowrap; }
+</style></head><body>
+<h1>Copiloto Salud360: propuesta de arquitectura</h1>
+<p>Enrique Quiroz. Noviembre de 2026.</p>
+<p>Respuesta al challenge "Copiloto Salud360" para el CEO y el panel técnico. Las cifras del brief llevan su sección (§01 a §10); los supuestos van marcados como "Supuesto". Moneda: USD.</p>
+<h2>D1. La respuesta</h2>
+<p><strong>Qué construimos.</strong> Un asistente por WhatsApp que lleva al miembro de "me duele el hombro" a una sede de la red con precio fijo y una cita pedida, en un solo chat. Razón: el miembro no sabe por dónde empezar y el directorio no lo ayuda (§02).</p>
+<p><strong>Qué nos negamos a construir.</strong> Un modelo de IA que decide a qué especialista ir según los síntomas. Razón: eso es triaje (decidir urgencia o tipo de atención a partir de síntomas), un acto clínico, y no hay médico en planta (§05). En su lugar, el sistema dice "por dónde empezar" dentro de una lista cerrada que firma el consejo médico, y ante una señal de alarma dice "a emergencias" o "habla con un clínico".</p>
+<table>
+<thead>
+<tr>
+<th>Mandato (§04)</th>
+<th>Decisión</th>
+<th>Lo que le diríamos a quien lo pidió</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M1, CEO: síntomas, especialista y cita</td>
+<td>Modificar</td>
+<td>"Sí al chat que va de lo que te pasa a la cita. Qué especialista ver lo decide una lista que firma el consejo, no la IA. La reserva es inmediata solo donde hay agenda (41%, §03); en el resto pedimos la cita por el miembro"</td>
+</tr>
+<tr>
+<td>M2, CTO: mejor modelo, base en el prompt</td>
+<td>Rechazar el método, mantener el objetivo</td>
+<td>"Precios y disponibilidad saldrán siempre de la base. Meterla en el prompt no la corrige, cuesta USD 9,70 por conversación y la envía entera a un tercero"</td>
+</tr>
+<tr>
+<td>M3, CEO: producción en 8 semanas</td>
+<td>Aceptar la fecha, recortar alcance</td>
+<td>"En la semana 8 sale un piloto por WhatsApp para tus tres cuentas, con cinco puntos de entrada y datos limpios. No el producto nacional"</td>
+</tr>
+<tr>
+<td>M4, CFO: sin costo significativo</td>
+<td>Aceptar y cuantificar</td>
+<td>"En régimen cuesta unos 4 centavos por miembro al mes (1,34% del margen). Lo que pesa es WhatsApp, no la IA"</td>
+</tr>
+<tr>
+<td>M5, jefa de experiencia: WhatsApp</td>
+<td>Aceptar con condiciones</td>
+<td>"Sí, con consentimiento antes de cualquier texto de salud y botones en vez de texto: Meta cobra cada mensaje"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>La idea central.</strong> El producto funciona sin la IA. La IA es una pieza apagable que acorta el camino a quien escribe en vez de tocar botones; si se apaga, el miembro llega a la misma sede con el mismo precio. El problema de fondo no es la falta de IA sino los datos de proveedores: 63% con precios completos, 41% con disponibilidad estructurada, 214 formas de escribir especialidades (§03). Por eso los datos van primero (D2) y el riesgo que puede matar el proyecto está en la red de proveedores, no en el modelo (D7). El ahorro en soporte paga la operación del copiloto; el retorno real es no perder cuentas corporativas en la renovación, y es la hipótesis que se va a medir (D4).</p>
+<h2>D2. Arquitectura</h2>
+<p><strong>Decisión:</strong> un flujo determinista (máquina de estados: el código sabe en qué paso está cada conversación y qué respuestas acepta) que funciona completo sin IA. El modelo es opcional: traduce el texto libre a una opción de una lista cerrada, después de las reglas de alarma. Un interruptor de configuración lo apaga sin desplegar código. Un solo backend sirve a WhatsApp (M5) y a la app (M1).</p>
+<div class="diagrama"><svg aria-roledescription="flowchart-v2" role="graphics-document document" viewBox="0 40 1833.27880859375 1829.265380859375" style="max-width: 1833.27880859375px;" class="flowchart" xmlns="http://www.w3.org/2000/svg" width="100%" id="d2svg"><style>#d2svg{font-family:'Segoe UI',Arial,sans-serif;font-size:28px;fill:#333;}#d2svg .error-icon{fill:hsl(220.5882352941, 100%, 98.3333333333%);}#d2svg .error-text{fill:rgb(8.5000000002, 5.7500000001, 0);stroke:rgb(8.5000000002, 5.7500000001, 0);}#d2svg .edge-thickness-normal{stroke-width:1px;}#d2svg .edge-thickness-thick{stroke-width:3.5px;}#d2svg .edge-pattern-solid{stroke-dasharray:0;}#d2svg .edge-thickness-invisible{stroke-width:0;fill:none;}#d2svg .edge-pattern-dashed{stroke-dasharray:3;}#d2svg .edge-pattern-dotted{stroke-dasharray:2;}#d2svg .marker{fill:#0b0b0b;stroke:#0b0b0b;}#d2svg .marker.cross{stroke:#0b0b0b;}#d2svg svg{font-family:'Segoe UI',Arial,sans-serif;font-size:28px;}#d2svg p{margin:0;}#d2svg .label{font-family:'Segoe UI',Arial,sans-serif;color:#333;}#d2svg .cluster-label text{fill:rgb(8.5000000002, 5.7500000001, 0);}#d2svg .cluster-label span{color:rgb(8.5000000002, 5.7500000001, 0);}#d2svg .cluster-label span p{background-color:transparent;}#d2svg .label text,#d2svg span{fill:#333;color:#333;}#d2svg .node rect,#d2svg .node circle,#d2svg .node ellipse,#d2svg .node polygon,#d2svg .node path{fill:#fff4dd;stroke:hsl(40.5882352941, 60%, 83.3333333333%);stroke-width:1px;}#d2svg .rough-node .label text,#d2svg .node .label text,#d2svg .image-shape .label,#d2svg .icon-shape .label{text-anchor:middle;}#d2svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#d2svg .rough-node .label,#d2svg .node .label,#d2svg .image-shape .label,#d2svg .icon-shape .label{text-align:center;}#d2svg .node.clickable{cursor:pointer;}#d2svg .root .anchor path{fill:#0b0b0b!important;stroke-width:0;stroke:#0b0b0b;}#d2svg .arrowheadPath{fill:#0b0b0b;}#d2svg .edgePath .path{stroke:#0b0b0b;stroke-width:2.0px;}#d2svg .flowchart-link{stroke:#0b0b0b;fill:none;}#d2svg .edgeLabel{background-color:hsl(-79.4117647059, 100%, 93.3333333333%);text-align:center;}#d2svg .edgeLabel p{background-color:hsl(-79.4117647059, 100%, 93.3333333333%);}#d2svg .edgeLabel rect{opacity:0.5;background-color:hsl(-79.4117647059, 100%, 93.3333333333%);fill:hsl(-79.4117647059, 100%, 93.3333333333%);}#d2svg .labelBkg{background-color:rgba(243.9999999999, 220.9999999998, 255, 0.5);}#d2svg .cluster rect{fill:hsl(220.5882352941, 100%, 98.3333333333%);stroke:hsl(220.5882352941, 60%, 88.3333333333%);stroke-width:1px;}#d2svg .cluster text{fill:rgb(8.5000000002, 5.7500000001, 0);}#d2svg .cluster span{color:rgb(8.5000000002, 5.7500000001, 0);}#d2svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;background:hsl(220.5882352941, 100%, 98.3333333333%);border:1px solid hsl(220.5882352941, 60%, 88.3333333333%);border-radius:2px;pointer-events:none;z-index:100;}#d2svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#d2svg rect.text{fill:none;stroke-width:0;}#d2svg .icon-shape,#d2svg .image-shape{background-color:hsl(-79.4117647059, 100%, 93.3333333333%);text-align:center;}#d2svg .icon-shape p,#d2svg .image-shape p{background-color:hsl(-79.4117647059, 100%, 93.3333333333%);padding:2px;}#d2svg .icon-shape rect,#d2svg .image-shape rect{opacity:0.5;background-color:hsl(-79.4117647059, 100%, 93.3333333333%);fill:hsl(-79.4117647059, 100%, 93.3333333333%);}#d2svg :root{--mermaid-font-family:'Segoe UI',Arial,sans-serif;}#d2svg .ia rect{fill:#f9d6d5!important;stroke:#c0392b!important;stroke-width:2px!important;color:#000!important;}#d2svg .ia polygon{fill:#f9d6d5!important;stroke:#c0392b!important;stroke-width:2px!important;color:#000!important;}#d2svg .ia ellipse{fill:#f9d6d5!important;stroke:#c0392b!important;stroke-width:2px!important;color:#000!important;}#d2svg .ia circle{fill:#f9d6d5!important;stroke:#c0392b!important;stroke-width:2px!important;color:#000!important;}#d2svg .ia path{fill:#f9d6d5!important;stroke:#c0392b!important;stroke-width:2px!important;color:#000!important;}#d2svg .ia tspan{fill:#000!important;}#d2svg .det rect{fill:#d6eaf8!important;stroke:#2471a3!important;color:#000!important;}#d2svg .det polygon{fill:#d6eaf8!important;stroke:#2471a3!important;color:#000!important;}#d2svg .det ellipse{fill:#d6eaf8!important;stroke:#2471a3!important;color:#000!important;}#d2svg .det circle{fill:#d6eaf8!important;stroke:#2471a3!important;color:#000!important;}#d2svg .det path{fill:#d6eaf8!important;stroke:#2471a3!important;color:#000!important;}#d2svg .det tspan{fill:#000!important;}#d2svg .ter rect{fill:#eeeeee!important;stroke:#666!important;stroke-dasharray:4 3!important;color:#000!important;}#d2svg .ter polygon{fill:#eeeeee!important;stroke:#666!important;stroke-dasharray:4 3!important;color:#000!important;}#d2svg .ter ellipse{fill:#eeeeee!important;stroke:#666!important;stroke-dasharray:4 3!important;color:#000!important;}#d2svg .ter circle{fill:#eeeeee!important;stroke:#666!important;stroke-dasharray:4 3!important;color:#000!important;}#d2svg .ter path{fill:#eeeeee!important;stroke:#666!important;stroke-dasharray:4 3!important;color:#000!important;}#d2svg .ter tspan{fill:#000!important;}#d2svg .hum rect{fill:#fdebd0!important;stroke:#ca6f1e!important;color:#000!important;}#d2svg .hum polygon{fill:#fdebd0!important;stroke:#ca6f1e!important;color:#000!important;}#d2svg .hum ellipse{fill:#fdebd0!important;stroke:#ca6f1e!important;color:#000!important;}#d2svg .hum circle{fill:#fdebd0!important;stroke:#ca6f1e!important;color:#000!important;}#d2svg .hum path{fill:#fdebd0!important;stroke:#ca6f1e!important;color:#000!important;}#d2svg .hum tspan{fill:#000!important;}</style><g><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="5" viewBox="0 0 10 10" class="marker flowchart-v2" id="d2svg_flowchart-v2-pointEnd"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 0 L 10 5 L 0 10 z"></path></marker><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="4.5" viewBox="0 0 10 10" class="marker flowchart-v2" id="d2svg_flowchart-v2-pointStart"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 5 L 10 10 L 10 0 z"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="11" viewBox="0 0 10 10" class="marker flowchart-v2" id="d2svg_flowchart-v2-circleEnd"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="-1" viewBox="0 0 10 10" class="marker flowchart-v2" id="d2svg_flowchart-v2-circleStart"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="12" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="d2svg_flowchart-v2-crossEnd"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="-1" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="d2svg_flowchart-v2-crossStart"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><g class="root"><g class="clusters"><g data-look="classic" id="FueraDeLinea" class="cluster"><rect height="337.1999969482422" width="523.50927734375" y="1127.6000442504883" x="141.75390625" style=""></rect><g transform="translate(317.047607421875, 1157.6000442504883)" class="cluster-label"><g><rect style="stroke: none" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Fuera</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> de</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> línea</tspan></tspan></text></g></g></g><g data-look="classic" id="Datos" class="cluster"><rect height="279.8652648925781" width="539.171875" y="1402.8000411987305" x="8" style=""></rect><g transform="translate(241.7578125, 1432.8000411987305)" class="cluster-label"><g><rect style="stroke: none" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Datos</tspan></tspan></text></g></g></g><g data-look="classic" id="EnLinea" class="cluster"><rect height="1734.4653015136719" width="1140.015625" y="126.80000305175781" x="685.26318359375" style=""></rect><g transform="translate(1199.13818359375, 156.8000030517578)" class="cluster-label"><g><rect style="stroke: none" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Flujo</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> del</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">miembro</tspan></tspan></text></g></g></g></g><g class="edgePaths"><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_M_WA_0" d="M1708.255,91L1708.255,92.5C1708.255,94,1708.255,97,1708.255,99.333C1708.255,101.667,1708.255,103.333,1708.255,104.167L1708.255,105"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_APP_ORQ_1" d="M859.236,173.4L859.236,177.467C859.236,181.533,859.236,189.667,859.236,195.233C859.236,200.8,859.236,203.8,890.872,214.043C922.508,224.286,985.781,241.773,1017.417,250.516L1049.054,259.259"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_WA_ORQ_2" d="M1708.255,188.8L1708.255,190.3C1708.255,191.8,1708.255,194.8,1708.255,197.8C1708.255,200.8,1708.255,203.8,1631.261,216.245C1554.267,228.691,1400.279,250.582,1323.285,261.527L1246.291,272.473"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_ORQ_ID_3" d="M1147.62,357.2L1147.62,358.7C1147.62,360.2,1147.62,363.2,1147.62,365.533C1147.62,367.867,1147.62,369.533,1147.62,370.367L1147.62,371.2"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_ID_PUB_4" d="M1040.065,451.105L1015.772,459.238C991.479,467.37,942.893,483.635,918.599,498.584C894.306,513.533,894.306,527.167,894.306,533.983L894.306,540.8"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_ID_ALR_5" d="M1228.843,455L1244.077,462.483C1259.311,469.967,1289.778,484.933,1305.012,499.233C1320.245,513.533,1320.245,527.167,1320.245,533.983L1320.245,540.8"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_ALR_EMG_6" d="M1248.854,602.312L1172.253,621.21C1095.652,640.108,942.45,677.904,865.849,713.885C789.248,749.867,789.248,784.033,789.248,801.117L789.248,818.2"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_ALR_TEL_7" d="M1248.854,612.457L1204.598,629.664C1160.342,646.872,1071.83,681.286,1027.574,713.01C983.318,744.733,983.318,773.767,983.318,788.283L983.318,802.8"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_ALR_LLM_8" d="M1311.338,624.6L1307.949,639.783C1304.559,654.967,1297.78,685.333,1305.053,715.161C1312.326,744.989,1333.65,774.278,1344.312,788.922L1354.975,803.566"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_ALR_MENU_9" d="M1391.636,615.719L1429.986,632.383C1468.337,649.046,1545.038,682.373,1583.389,723.437C1621.74,764.5,1621.74,813.3,1621.74,854.4C1621.74,895.5,1621.74,928.9,1621.74,964.867C1621.74,1000.833,1621.74,1039.367,1621.74,1075.333C1621.74,1111.3,1621.74,1144.7,1621.74,1166.317C1621.74,1187.933,1621.74,1197.767,1624.392,1206.217C1627.044,1214.667,1632.347,1221.734,1634.999,1225.267L1637.651,1228.801"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-dotted edge-thickness-normal edge-pattern-solid flowchart-link" id="L_LLM_ALR_10" d="M1437.854,806.8L1448.908,791.617C1459.963,776.433,1482.072,746.067,1472.351,716.087C1462.63,686.107,1421.078,656.514,1400.302,641.717L1379.527,626.92"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_LLM_VAL_11" d="M1397.591,917.4L1397.591,924.883C1397.591,932.367,1397.591,947.333,1397.591,961.633C1397.591,975.933,1397.591,989.567,1397.591,996.383L1397.591,1003.2"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_VAL_MENU_12" d="M1497.451,1109.104L1534.251,1120.603C1571.052,1132.103,1644.654,1155.101,1681.455,1171.517C1718.255,1187.933,1718.255,1197.767,1715.603,1206.217C1712.952,1214.667,1707.648,1221.734,1704.996,1225.267L1702.344,1228.801"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_VAL_BUS_13" d="M1397.591,1148.6L1397.591,1153.517C1397.591,1158.433,1397.591,1168.267,1397.591,1178.1C1397.591,1187.933,1397.591,1197.767,1397.591,1213.4C1397.591,1229.033,1397.591,1250.467,1397.591,1271.9C1397.591,1293.333,1397.591,1314.767,1399.176,1326.599C1400.76,1338.432,1403.93,1340.664,1405.514,1341.781L1407.099,1342.897"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_MENU_BUS_14" d="M1669.998,1311.8L1669.998,1315.867C1669.998,1319.933,1669.998,1328.067,1654.371,1337.681C1638.744,1347.296,1607.49,1358.392,1591.863,1363.94L1576.236,1369.487"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_BUS_AG_15" d="M1553.97,1455.8L1555.736,1457.3C1557.501,1458.8,1561.032,1461.8,1562.798,1464.8C1564.563,1467.8,1564.563,1470.8,1564.563,1473.8C1564.563,1476.8,1564.563,1479.8,1564.563,1490.639C1564.563,1501.478,1564.563,1520.155,1564.563,1529.494L1564.563,1538.833"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_AG_RES_16" d="M1461.032,1603.731L1396.167,1616.886C1331.302,1630.042,1201.572,1656.354,1136.706,1674.426C1071.841,1692.499,1071.841,1702.332,1071.841,1714.065C1071.841,1725.799,1071.841,1739.432,1071.841,1746.249L1071.841,1753.065"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_AG_PROV_17" d="M1545.538,1622.633L1540.767,1632.638C1535.996,1642.644,1526.454,1662.654,1521.683,1677.577C1516.912,1692.499,1516.912,1702.332,1516.912,1711.499C1516.912,1720.665,1516.912,1729.165,1516.912,1733.415L1516.912,1737.665"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_AG_SOP_18" d="M1626.152,1622.633L1641.597,1632.638C1657.041,1642.644,1687.929,1662.654,1703.374,1677.577C1718.818,1692.499,1718.818,1702.332,1718.818,1711.499C1718.818,1720.665,1718.818,1729.165,1718.818,1733.415L1718.818,1737.665"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_CONS_CAT_19" d="M266.934,1440.4L266.934,1444.467C266.934,1448.533,266.934,1456.667,266.934,1462.233C266.934,1467.8,266.934,1470.8,266.934,1473.8C266.934,1476.8,266.934,1479.8,266.9,1482.136C266.867,1484.471,266.8,1486.142,266.767,1486.978L266.734,1487.813"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_LIM_REV_20" d="M352.197,1311.8L352.197,1315.867C352.197,1319.933,352.197,1328.067,358.007,1335.841C363.817,1343.616,375.436,1351.032,381.246,1354.74L387.056,1358.448"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_REV_DBP_21" d="M452.945,1440.4L452.945,1444.467C452.945,1448.533,452.945,1456.667,452.945,1462.233C452.945,1467.8,452.945,1470.8,452.945,1473.8C452.945,1476.8,452.945,1479.8,452.945,1485.059C452.945,1490.318,452.945,1497.836,452.945,1501.595L452.945,1505.354"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_LLM2_REV_22" d="M552.287,1327.2L552.287,1328.7C552.287,1330.2,552.287,1333.2,546.563,1338.404C540.84,1343.609,529.394,1351.018,523.671,1354.722L517.947,1358.427"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_ID_DBM_23" d="M1126.79,455L1122.883,462.483C1118.976,469.967,1111.163,484.933,1107.256,506.55C1103.349,528.167,1103.349,556.433,1103.349,592.4C1103.349,628.367,1103.349,672.033,1103.349,718.267C1103.349,764.5,1103.349,813.3,1103.349,854.4C1103.349,895.5,1103.349,928.9,1103.349,964.867C1103.349,1000.833,1103.349,1039.367,1103.349,1075.333C1103.349,1111.3,1103.349,1144.7,1103.349,1166.317C1103.349,1187.933,1103.349,1197.767,1103.349,1213.4C1103.349,1229.033,1103.349,1250.467,1103.349,1271.9C1103.349,1293.333,1103.349,1314.767,1103.349,1336.2C1103.349,1357.633,1103.349,1379.067,1103.349,1400.5C1103.349,1421.933,1103.349,1443.367,1103.349,1455.583C1103.349,1467.8,1103.349,1470.8,1103.349,1473.8C1103.349,1476.8,1103.349,1479.8,945.65,1496.815C787.95,1513.83,472.551,1544.859,314.852,1560.374L157.153,1575.889"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_ALR_CAT_24" d="M1275.131,624.6L1257.964,639.783C1240.796,654.967,1206.461,685.333,1189.294,724.917C1172.126,764.5,1172.126,813.3,1172.126,854.4C1172.126,895.5,1172.126,928.9,1172.126,964.867C1172.126,1000.833,1172.126,1039.367,1172.126,1075.333C1172.126,1111.3,1172.126,1144.7,1172.126,1166.317C1172.126,1187.933,1172.126,1197.767,1172.126,1213.4C1172.126,1229.033,1172.126,1250.467,1172.126,1271.9C1172.126,1293.333,1172.126,1314.767,1172.126,1336.2C1172.126,1357.633,1172.126,1379.067,1172.126,1400.5C1172.126,1421.933,1172.126,1443.367,1172.126,1455.583C1172.126,1467.8,1172.126,1470.8,1172.126,1473.8C1172.126,1476.8,1172.126,1479.8,1038.221,1496.018C904.316,1512.236,636.505,1541.673,502.6,1556.391L368.695,1571.109"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_VAL_CAT_25" d="M1297.732,1126.868L1280.319,1135.407C1262.907,1143.945,1228.081,1161.023,1210.669,1174.478C1193.256,1187.933,1193.256,1197.767,1193.256,1213.4C1193.256,1229.033,1193.256,1250.467,1193.256,1271.9C1193.256,1293.333,1193.256,1314.767,1193.256,1336.2C1193.256,1357.633,1193.256,1379.067,1193.256,1400.5C1193.256,1421.933,1193.256,1443.367,1193.256,1455.583C1193.256,1467.8,1193.256,1470.8,1193.256,1473.8C1193.256,1476.8,1193.256,1479.8,1055.829,1496.062C918.403,1512.324,643.549,1541.849,506.123,1556.611L368.696,1571.373"></path><path marker-end="url(#d2svg_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_BUS_DBP_26" d="M1405.296,1423.193L1379.755,1430.128C1354.214,1437.062,1303.131,1450.931,1277.59,1459.366C1252.048,1467.8,1252.048,1470.8,1252.048,1473.8C1252.048,1476.8,1252.048,1479.8,1132.897,1496.201C1013.746,1512.601,775.443,1542.402,656.292,1557.303L537.141,1572.204"></path></g><g class="edgeLabels"><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g><rect style="stroke: none" class="background"></rect></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g transform="translate(894.30615234375, 499.90001678466797)" class="edgeLabel"><g transform="translate(-90.140625, -35.900001525878906)" class="label"><g><rect height="71.80000305175781" width="180.28125" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">no</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> miembro</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> o</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">no</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> acepta</tspan></tspan></text></g></g></g><g transform="translate(1320.2451171875, 499.90001678466797)" class="edgeLabel"><g transform="translate(-97.5546875, -35.900001525878906)" class="label"><g><rect height="71.80000305175781" width="195.109375" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">consentimiento</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">aceptado</tspan></tspan></text></g></g></g><g transform="translate(789.24755859375, 715.7000274658203)" class="edgeLabel"><g transform="translate(-74.0390625, -20.5)" class="label"><g><rect height="41" width="148.078125" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">emergencia</tspan></tspan></text></g></g></g><g transform="translate(983.31787109375, 715.7000274658203)" class="edgeLabel"><g transform="translate(-100.03125, -20.5)" class="label"><g><rect height="41" width="200.0625" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">atención</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> pronta</tspan></tspan></text></g></g></g><g transform="translate(1291.00146484375, 715.7000274658203)" class="edgeLabel"><g transform="translate(-97.90625, -82.10000610351562)" class="label"><g><rect height="164.20001220703125" width="195.8125" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">sin</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> alarma,</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">texto</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> libre</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> 20%,</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">identificadores</tspan></tspan><tspan dy="1.1em" y="3.2em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">conocidos</tspan></tspan><tspan dy="1.1em" y="4.300000000000001em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">eliminados</tspan></tspan></text></g></g></g><g transform="translate(1621.73974609375, 962.3000335693359)" class="edgeLabel"><g transform="translate(-95.0380859375, -35.900001525878906)" class="label"><g><rect height="71.80000305175781" width="190.076171875" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">sin</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> alarma,</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">botones</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> o</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> 80%</tspan></tspan></text></g></g></g><g transform="translate(1504.18115234375, 715.7000274658203)" class="edgeLabel"><g transform="translate(-95.2734375, -35.900001525878906)" class="label"><g><rect height="71.80000305175781" width="190.546875" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">posible</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> alarma:</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">solo</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> escala</tspan></tspan></text></g></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g transform="translate(1718.25537109375, 1178.1000442504883)" class="edgeLabel"><g transform="translate(-76.515625, -20.5)" class="label"><g><rect height="41" width="153.03125" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">falla</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> o</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> no</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> sé</tspan></tspan></text></g></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g transform="translate(1071.84130859375, 1712.1653060913086)" class="edgeLabel"><g transform="translate(-42.1171875, -20.5)" class="label"><g><rect height="41" width="84.234375" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">nivel</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> 1</tspan></tspan></text></g></g></g><g transform="translate(1516.91162109375, 1712.1653060913086)" class="edgeLabel"><g transform="translate(-42.1171875, -20.5)" class="label"><g><rect height="41" width="84.234375" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">nivel</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> 2</tspan></tspan></text></g></g></g><g transform="translate(1718.81787109375, 1712.1653060913086)" class="edgeLabel"><g transform="translate(-42.1171875, -20.5)" class="label"><g><rect height="41" width="84.234375" y="-3.999998092651367" x="-2" style="" class="background"></rect><text style="" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">nivel</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> 3</tspan></tspan></text></g></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><text y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"></tspan></text></g></g></g><g class="nodes"><g transform="translate(1708.25537109375, 69.5)" id="flowchart-M-0" class="node default hum"><rect height="43" width="130.046875" y="-21.5" x="-65.0234375" ry="21.5" rx="21.5" style="fill:#fdebd0 !important;stroke:#ca6f1e !important" class="basic label-container"></rect><g transform="translate(0, -18.5)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Miembro</tspan></tspan></text></g></g></g><g transform="translate(1708.25537109375, 148.9000015258789)" id="flowchart-WA-1" class="node default ter"><rect height="79.80000305175781" width="172.279296875" y="-39.900001525878906" x="-86.1396484375" style="fill:#eeeeee !important;stroke:#666 !important;stroke-dasharray:4 3 !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">WhatsApp</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> /</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Meta</tspan></tspan></text></g></g></g><g transform="translate(859.23583984375, 148.9000015258789)" id="flowchart-APP-2" class="node default det"><rect height="49" width="156.203125" y="-24.5" x="-78.1015625" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -18.5)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">App</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> actual</tspan></tspan></text></g></g></g><g transform="translate(1147.6201171875, 286.50000762939453)" id="flowchart-ORQ-3" class="node default det"><rect height="141.40000915527344" width="189.421875" y="-70.70000457763672" x="-94.7109375" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -64.70000457763672)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Orquestador</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">máquina</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> de</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">estados</tspan></tspan><tspan dy="1.1em" y="3.2em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">plantillas</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> fijas</tspan></tspan></text></g></g></g><g transform="translate(1147.6201171875, 415.10001373291016)" id="flowchart-ID-7" class="node default det"><rect height="79.80000305175781" width="215.109375" y="-39.900001525878906" x="-107.5546875" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Identidad</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> y</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">consentimiento</tspan></tspan></text></g></g></g><g transform="translate(894.30615234375, 584.7000198364258)" id="flowchart-PUB-9" class="node default det"><rect height="79.80000305175781" width="146.546875" y="-39.900001525878906" x="-73.2734375" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Directorio</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">público</tspan></tspan></text></g></g></g><g transform="translate(1320.2451171875, 584.7000198364258)" id="flowchart-ALR-11" class="node default det"><rect height="79.80000305175781" width="142.78125" y="-39.900001525878906" x="-71.390625" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Reglas</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> de</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">alarma</tspan></tspan></text></g></g></g><g transform="translate(789.24755859375, 862.1000328063965)" id="flowchart-EMG-13" class="node default det"><rect height="79.80000305175781" width="179.96875" y="-39.900001525878906" x="-89.984375" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Mensaje</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> fijo:</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">emergencias</tspan></tspan></text></g></g></g><g transform="translate(983.31787109375, 862.1000328063965)" id="flowchart-TEL-15" class="node default ter"><rect height="110.5999984741211" width="183.84375" y="-55.29999923706055" x="-91.921875" style="fill:#eeeeee !important;stroke:#666 !important;stroke-dasharray:4 3 !important" class="basic label-container"></rect><g transform="translate(0, -49.29999923706055)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Telemedicina</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">clínicos</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> por</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">consulta</tspan></tspan></text></g></g></g><g transform="translate(1397.59130859375, 862.1000328063965)" id="flowchart-LLM-17" class="node default ia"><rect height="110.5999984741211" width="211.6875" y="-55.29999923706055" x="-105.84375" style="fill:#f9d6d5 !important;stroke:#c0392b !important;stroke-width:2px !important" class="basic label-container"></rect><g transform="translate(0, -49.29999923706055)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Modelo</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> de</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> IA:</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">propone</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> punto</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">de</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> entrada</tspan></tspan></text></g></g></g><g transform="translate(1669.99755859375, 1271.9000434875488)" id="flowchart-MENU-19" class="node default det"><rect height="79.80000305175781" width="148.34375" y="-39.900001525878906" x="-74.171875" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Menú</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> con</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">botones</tspan></tspan></text></g></g></g><g transform="translate(1397.59130859375, 1077.9000396728516)" id="flowchart-VAL-23" class="node default det"><rect height="141.40000915527344" width="199.71875" y="-70.70000457763672" x="-99.859375" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -64.70000457763672)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Validador:</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">lista</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> cerrada</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> +</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">confirma</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> el</tspan></tspan><tspan dy="1.1em" y="3.2em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">miembro</tspan></tspan></text></g></g></g><g transform="translate(1488.88134765625, 1400.50004196167)" id="flowchart-BUS-27" class="node default det"><rect height="110.5999984741211" width="167.169921875" y="-55.29999923706055" x="-83.5849609375" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -49.29999923706055)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Búsqueda</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> y</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">ranking</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">SQL</tspan></tspan></text></g></g></g><g transform="translate(1564.5634765625, 1582.7326736450195)" id="flowchart-AG-31" class="node default det"><rect height="79.80000305175781" width="207.0625" y="-39.900001525878906" x="-103.53125" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Agendamiento</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">3</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> niveles</tspan></tspan></text></g></g></g><g transform="translate(1071.84130859375, 1796.9653053283691)" id="flowchart-RES-33" class="node default det"><rect height="79.80000305175781" width="186.015625" y="-39.900001525878906" x="-93.0078125" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Reserva</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> de</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> la</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">app</tspan></tspan></text></g></g></g><g transform="translate(1516.91162109375, 1796.9653053283691)" id="flowchart-PROV-35" class="node default ter"><rect height="110.5999984741211" width="202.890625" y="-55.29999923706055" x="-101.4453125" style="fill:#eeeeee !important;stroke:#666 !important;stroke-dasharray:4 3 !important" class="basic label-container"></rect><g transform="translate(0, -49.29999923706055)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Proveedor</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">responde</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">por</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> WhatsApp</tspan></tspan></text></g></g></g><g transform="translate(1718.81787109375, 1796.9653053283691)" id="flowchart-SOP-37" class="node default hum"><rect height="110.5999984741211" width="184.921875" y="-55.29999923706055" x="-92.4609375" style="fill:#fdebd0 !important;stroke:#ca6f1e !important" class="basic label-container"></rect><g transform="translate(0, -49.29999923706055)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Soporte</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">humano</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">con</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> contexto</tspan></tspan></text></g></g></g><g transform="translate(87.5859375, 1582.7326736450195)" id="flowchart-DBM-38" class="node default det"><path transform="translate(-65.5859375, -40.70173833485819)" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container" d="M0,12.80115888990546 a65.5859375,12.80115888990546 0,0,0 131.171875,0 a65.5859375,12.80115888990546 0,0,0 -131.171875,0 l0,55.80115888990546 a65.5859375,12.80115888990546 0,0,0 131.171875,0 l0,-55.80115888990546"></path><g transform="translate(0, -12.500001907348633)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Miembros</tspan></tspan></text></g></g></g><g transform="translate(262.9453125, 1582.7326736450195)" id="flowchart-CAT-39" class="node default det"><path transform="translate(-101.7734375, -90.93263405402422)" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container" d="M0,15.488419650925 a101.7734375,15.488419650925 0,0,0 203.546875,0 a101.7734375,15.488419650925 0,0,0 -203.546875,0 l0,150.88842880619845 a101.7734375,15.488419650925 0,0,0 203.546875,0 l0,-150.88842880619845"></path><g transform="translate(0, -58.70000648498535)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Catálogo</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> clínico</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">puntos</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> de</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">entrada</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> y</tspan></tspan><tspan dy="1.1em" y="3.2em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">alarmas</tspan></tspan></text></g></g></g><g transform="translate(452.9453125, 1582.7326736450195)" id="flowchart-DBP-40" class="node default det"><path transform="translate(-80.2265625, -73.37873917903876)" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container" d="M0,14.052493294652143 a80.2265625,14.052493294652143 0,0,0 160.453125,0 a80.2265625,14.052493294652143 0,0,0 -160.453125,0 l0,118.65249176877323 a80.2265625,14.052493294652143 0,0,0 160.453125,0 l0,-118.65249176877323"></path><g transform="translate(0, -43.30000114440918)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Catálogo</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> de</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">proveedores</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">limpio</tspan></tspan></text></g></g></g><g transform="translate(266.93359375, 1400.50004196167)" id="flowchart-CONS-41" class="node default hum"><rect height="79.80000305175781" width="222.359375" y="-39.900001525878906" x="-111.1796875" style="fill:#fdebd0 !important;stroke:#ca6f1e !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Consejo</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> médico</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">mensual</tspan></tspan></text></g></g></g><g transform="translate(352.19677734375, 1271.9000434875488)" id="flowchart-LIM-43" class="node default det"><rect height="79.80000305175781" width="183.412109375" y="-39.900001525878906" x="-91.7060546875" style="fill:#d6eaf8 !important;stroke:#2471a3 !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Limpieza</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> por</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">reglas</tspan></tspan></text></g></g></g><g transform="translate(452.9453125, 1400.50004196167)" id="flowchart-REV-44" class="node default hum"><rect height="79.80000305175781" width="125.6875" y="-39.900001525878906" x="-62.84375" style="fill:#fdebd0 !important;stroke:#ca6f1e !important" class="basic label-container"></rect><g transform="translate(0, -33.900001525878906)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Revisión</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">analista</tspan></tspan></text></g></g></g><g transform="translate(552.28662109375, 1271.9000434875488)" id="flowchart-LLM2-46" class="node default ia"><rect height="110.5999984741211" width="197.953125" y="-55.29999923706055" x="-98.9765625" style="fill:#f9d6d5 !important;stroke:#c0392b !important;stroke-width:2px !important" class="basic label-container"></rect><g transform="translate(0, -49.29999923706055)" style="color:#000 !important" class="label"><rect></rect><g><rect style="stroke: none" class="background"></rect><text style="fill:#000 !important" y="-10.1"><tspan dy="1.1em" y="-0.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">Modelo</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> de</tspan><tspan font-weight="normal" class="text-inner-tspan" font-style="normal"> IA:</tspan></tspan><tspan dy="1.1em" y="1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">propone</tspan></tspan><tspan dy="1.1em" y="2.1em" x="0" class="text-outer-tspan"><tspan font-weight="normal" class="text-inner-tspan" font-style="normal">mapeos</tspan></tspan></text></g></g></g></g></g></g></svg></div>
+<p>Colores: rojo, modelo de IA; azul, determinista; gris punteado, tercero; naranja, persona. La línea punteada indica que el modelo solo puede escalar una alarma.</p>
+<p><strong>Fronteras del modelo (§06)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Dónde participa</th>
+<th>De qué puede ser autoridad</th>
+<th>Qué nunca responde solo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Interpretar el texto libre del miembro</td>
+<td>Proponer un punto de entrada de la lista cerrada; el miembro confirma con un botón</td>
+<td>Especialista fuera de la lista, diagnóstico, gravedad, cualquier recomendación clínica</td>
+</tr>
+<tr>
+<td>Extraer datos logísticos del mismo texto</td>
+<td>Ubicación, horario, para quién es la cita; validados contra listas y confirmados</td>
+<td>Qué proveedor elegir, precios, disponibilidad, horarios reales</td>
+</tr>
+<tr>
+<td>Señal de posible alarma</td>
+<td>Solo escalar al mismo mensaje fijo que las reglas</td>
+<td>Bajar una urgencia, anular una regla, decir "no es grave"</td>
+</tr>
+<tr>
+<td>No participa</td>
+<td>Nada</td>
+<td>Precios, ranking, agendamiento, consentimiento, identidad, textos al miembro, mensajes a proveedores</td>
+</tr>
+</tbody>
+</table>
+<p>Falla, demora de más de 3 segundos o salida fuera de la lista equivalen a "no sé": el miembro ve el menú.</p>
+<p><strong>Decisiones que más se van a cuestionar</strong></p>
+<table>
+<thead>
+<tr>
+<th>Decisión</th>
+<th>Alternativa descartada</th>
+<th>Razón</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flujo determinista, modelo opcional</td>
+<td>Agente de IA que conduce la conversación</td>
+<td>No se puede acotar ni probar con datos de salud y sin equipo de ML (§05)</td>
+</tr>
+<tr>
+<td>El modelo solo clasifica en la lista del consejo</td>
+<td>Recomendar especialista (M1 literal)</td>
+<td>Es triaje sin médico en planta (§05)</td>
+</tr>
+<tr>
+<td>Precios y disponibilidad por consulta SQL</td>
+<td>Base entera en el prompt (M2)</td>
+<td>La base está mal en origen; el prompt no la arregla, cuesta en cada mensaje (D4) y la envía a un tercero</td>
+</tr>
+<tr>
+<td>Modelo pequeño con salida estructurada (respuesta forzada a un esquema), con ejemplos y sin entrenar</td>
+<td>"El mejor modelo" (M2) o clasificador propio</td>
+<td>Clasificar en una lista no requiere el modelo más caro; no hay ingenieros de ML ni datos etiquetados (§05)</td>
+</tr>
+<tr>
+<td>Todo texto al miembro es plantilla</td>
+<td>Respuestas redactadas por el modelo</td>
+<td>Sin alucinaciones en lo que lee el miembro; revisión legal simple</td>
+</tr>
+<tr>
+<td>Alarmas antes del modelo; el modelo solo escala</td>
+<td>Que el modelo evalúe urgencia</td>
+<td>La seguridad no puede depender de una pieza probabilística que cambia de versión</td>
+</tr>
+<tr>
+<td>Medicina general por defecto; telemedicina solo por regla o pedido</td>
+<td>Telemedicina ante la duda</td>
+<td>Cuesta 9,40 / 1,85 = ~5 contactos de soporte; quedan ~800 consultas libres (3.200 - 2.400, §03)</td>
+</tr>
+<tr>
+<td>Servicios administrados: serverless (código por evento sin administrar servidores), base relacional, cola</td>
+<td>Servidores propios</td>
+<td>Sin SRE; los mismos 4 ingenieros mantienen la app (§05)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Datos de proveedores, fuera de línea.</strong> La analista limpia en lotes: taxonomía para los 214 nombres, duplicados por teléfono compartido (18%) que decide una persona, y precios faltantes (37%) que nunca se estiman (§03). Solo entra la sede "publicable": activa, especialidad canónica, teléfono verificado y precio del servicio.</p>
+<p><strong>Datos de salud y Ley 8968 (§05)</strong></p>
+<ul>
+<li><strong>Consentimiento</strong> por botón antes de cualquier texto libre: qué se procesa, qué terceros lo ven (Meta y el proveedor del modelo), cuánto se guarda, cómo revocar. La letra la valida el abogado.</li>
+<li><strong>Se guarda</strong> consentimiento, punto de entrada, sede y estado de la cita. El texto libre se borra al cerrar la conversación y nunca entra en los registros técnicos.</li>
+<li><strong>Qué viaja a cada subprocesador</strong> (tercero que procesa datos por cuenta de Salud360): a Meta, lo que el miembro escribe (inevitable con M5). Al proveedor del modelo, solo el texto, tras un filtro que elimina identificadores conocidos (nombre del titular y dependientes, teléfono, afiliado, correo, documento). Al proveedor de la cita, nombre, servicio y horario, nunca síntomas.</li>
+<li><strong>Limitación honesta:</strong> no es anónimo. "A mi hija María Rodríguez le duele la muela desde que fuimos a Heredia" trae un tercero y un lugar que el filtro no conoce. Por eso el contrato de subprocesador (sin retención ni entrenamiento) es condición para encender el modelo.</li>
+</ul>
+<p><strong>Agendamiento en tres niveles.</strong> Solo el 41% tiene disponibilidad estructurada y no se puede obligar a nadie (§03, §05).</p>
+<ol>
+<li><strong>Reserva directa</strong> con el motor de reservas de la app (§01).</li>
+<li><strong>Solicitud al proveedor</strong> por plantilla de WhatsApp con botones; sin respuesta en el plazo, siguiente sede. Solo sedes que respondieron a la campaña de precios (prueba de vida), con 2 o 3 sedes ancla por punto de entrada.</li>
+<li><strong>Contacto asistido:</strong> teléfono y precio, más traspaso a soporte con contexto.</li>
+</ol>
+<p>El ranking premia disponibilidad y confirmación rápida: es el incentivo que Salud360 controla. "En el mismo flujo" es literal solo en el nivel 1.</p>
+<h2>D3. Las 8 semanas</h2>
+<p><strong>Capacidad.</strong> Supuesto: 2 ingenieros equivalentes (4 × 50%, porque mantienen la app, §05): 16 <span class="nw">semanas-ingeniero</span>, 14 asignadas y 2 de reserva que consume la pieza del modelo.</p>
+<p><strong>Sale en la semana 8 (piloto):</strong> empleados de las tres cuentas más grandes (M3), solo por WhatsApp, sedes publicables de su zona, cinco puntos de entrada (medicina general, odontología, laboratorio e imágenes con orden, nutrición), alarmas para cualquier texto (incluida crisis de salud mental) y los tres niveles de agenda. La IA atiende el 20% del texto libre solo si pasó la prueba de la semana 6, en modo sombra los primeros 5 días hábiles (D5).</p>
+<p><strong>Régimen:</strong> el copiloto abierto a todos los miembros, desde las semanas <span class="nw">9-12</span>. Se abre por zonas, a medida que sus sedes quedan publicables.</p>
+<p><strong>Se corta</strong></p>
+<ul>
+<li>Copiloto en la app: interfaz nueva y tiendas; va después de abrir el régimen por zonas, sin costo de Meta.</li>
+<li>Psicología como punto de entrada: requiere protocolo de crisis del consejo.</li>
+<li>Citas para dependientes: consentimiento sobre terceros, incluidos menores.</li>
+<li>Recordatorios y encuestas: cada mensaje cuesta USD 0,0113.</li>
+<li>Modelo para limpiar datos: los 214 nombres se revisan a mano; un subprocesador menos.</li>
+<li>Sedes fuera de la zona: la analista a 0,5 no limpia 1.140 sedes en 8 semanas.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Semana</th>
+<th>Hito</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Alta en WhatsApp Business Platform; encargo al abogado; borrador del catálogo clínico</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Reunión 1 del consejo:</strong> aprueba lista, alarmas y textos</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Plantillas de Meta aprobadas; consentimiento y contrato de subprocesador firmados</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Corte final de sedes; prueba final del modelo</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Reunión 2 del consejo: ajustes</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Producción y demo</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ruta crítica: el consejo</strong> (una reunión al mes, §05: caben 8 / ~4,3 = ~1,9). Si no aprueba en la semana 4: solo botones, sin texto libre ni modelo, puntos de entrada sin juicio clínico y aviso fijo de emergencias (texto estándar con el 911, sin juicio clínico, aprobado por el abogado y ratificado por el consejo en su siguiente reunión). Se pierde el caso del hombro.</p>
+<p><strong>Regla:</strong> si hay retraso, el modelo es lo primero que se corta; la versión sin IA sale igual.</p>
+<p><strong>Demo del CEO</strong> (cuenta de prueba con IA):</p>
+<ol>
+<li>Acepta el consentimiento con un botón.</li>
+<li>"Me duele el hombro desde hace 3 semanas": propone medicina general y pide confirmar.</li>
+<li>Elige cantón: 3 sedes con precio fijo.</li>
+<li>Reserva en nivel 1; de respaldo, una solicitud de nivel 2 confirmada.</li>
+<li>"Me duele el pecho y me cuesta respirar": mensaje de emergencias, sin sede.</li>
+<li>Apaga el modelo y repite el paso 2: misma sede, mismo precio.</li>
+<li>Cierre: lo que cuesta, unos 4 centavos por miembro al mes en régimen (D4), y lo que se va a medir: conversión a cita, respuesta de proveedores y, a la renovación, retención de cuentas.</li>
+</ol>
+<p><strong>No debe prometer:</strong> que dice qué especialista ver, cobertura nacional, reserva inmediata en todas las sedes, ahorro o renovación (no medidos), IA activa para todos ni fecha de decisión sobre la IA.</p>
+<h2>D4. Economía unitaria</h2>
+<p><strong>Línea base (§03).</strong> 9.000 contactos × USD 1,85 = USD 16.650 al mes; 16.650 / 38.000 = USD 0,44 por miembro, 14,2% del margen de 3,10.</p>
+<p><strong>Costo por conversación (régimen).</strong> Supuestos: todo por WhatsApp; Meta cobra cada mensaje saliente a 0,0113; 59% (100% - 41%) pasa por nivel 2; modelo al 20%; infraestructura de 200, 500 o 1.000 al mes sobre 11.632 conversaciones. Token: unidad de texto que cobra el modelo.</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Mínimo</th>
+<th>Base</th>
+<th>Máximo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Al miembro</td>
+<td>5 × 0,0113 = 0,0565</td>
+<td>7 × 0,0113 = 0,0791</td>
+<td>10 × 0,0113 = 0,1130</td>
+</tr>
+<tr>
+<td>Al proveedor</td>
+<td>0,59 × 1 × 0,0113 = 0,0067</td>
+<td>0,59 × 2 × 0,0113 = 0,0133</td>
+<td>0,59 × 4 × 0,0113 = 0,0267</td>
+</tr>
+<tr>
+<td>Modelo</td>
+<td>0,000045</td>
+<td>(4.000 × 0,10 + 100 × 0,50) / 10⁶ × 0,20 = 0,000090</td>
+<td>0,000540</td>
+</tr>
+<tr>
+<td>Infraestructura</td>
+<td>0,0172</td>
+<td>500 / 11.632 = 0,0430</td>
+<td>0,0860</td>
+</tr>
+<tr>
+<td><strong>Total (variable)</strong></td>
+<td><strong>0,0804 (0,0632)</strong></td>
+<td><strong>0,1355 (0,0925)</strong></td>
+<td><strong>0,2262 (0,1402)</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hallazgo: el costo dominante es WhatsApp, no el modelo.</strong> Canal 0,0791 + 0,0133 = 0,0924 frente a 0,000090: ~1.027 veces. Un mensaje ahorrado paga ~25 llamadas al modelo.</p>
+<p><strong>M2.</strong> Supuesto: 300 tokens por sede. (1.140 × 300 + 3.000) = 345.000 tokens × 4 / 10⁶ + 300 × 20 / 10⁶ = 1,386 por mensaje con Opus 5.5; × 7 = <strong>USD 9,70 por conversación</strong> (5,2 contactos de soporte). × 11.632 = USD 112.830 al mes = <strong>95,8% del margen</strong>. Con un modelo pequeño sigue costando ~385 veces nuestra llamada: falla el método.</p>
+<p><strong>Desplazamiento real (régimen).</strong> Contactos evitados = 9.000 × (a) × (b) × (c), todo Supuesto.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Conservador</th>
+<th>Base</th>
+<th>Optimista</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(a) "¿A dónde voy?" × (b) adopción</td>
+<td>30% × 30%</td>
+<td>50% × 50%</td>
+<td>70% × 70%</td>
+</tr>
+<tr>
+<td>(c) Sin soporte: 41% + 59% × confirmación (20/40/60%)</td>
+<td>52,8%</td>
+<td>64,6%</td>
+<td>76,4%</td>
+</tr>
+<tr>
+<td>Evitados (% de 9.000); ahorro × 1,85</td>
+<td>428 (4,8%); 791,80</td>
+<td>1.454 (16,2%); 2.689,90</td>
+<td>3.369 (37,4%); 6.232,65</td>
+</tr>
+<tr>
+<td>Conversaciones por evitado (Supuesto)</td>
+<td>11 → 4.708</td>
+<td>8 → 11.632</td>
+<td>6 → 20.214</td>
+</tr>
+<tr>
+<td>Costo: conversaciones × 0,0925 + 500</td>
+<td>935,49</td>
+<td>1.575,96</td>
+<td>2.369,80</td>
+</tr>
+<tr>
+<td><strong>Neto mensual</strong></td>
+<td><strong>-143,69</strong></td>
+<td><strong>+1.113,94</strong></td>
+<td><strong>+3.862,85</strong></td>
+</tr>
+<tr>
+<td>Por miembro (% del margen)</td>
+<td>0,0246 (0,79%)</td>
+<td>0,0415 (1,34%)</td>
+<td>0,0624 (2,01%)</td>
+</tr>
+</tbody>
+</table>
+<p>Referencia, no derivación: hoy hay 96.000 / 9.000 = 10,7 búsquedas en el directorio por cada contacto de soporte (§03).</p>
+<p><strong>Por contacto evitado (base):</strong> 8 × 0,1355 = <strong>USD 1,08 frente a 1,85</strong>. En el conservador no se paga: la nube fija (500) supera el ahorro neto del variable (791,80 - 435,49 = 356,31). El ahorro es caja solo si soporte ajusta dotación (CFO).</p>
+<p><strong>Retorno por renovación.</strong> El ahorro paga la operación; el retorno real es no perder cuentas. Supuesto: cuenta de 30 empleados × USD 10 (§01) = 300 al mes. Retener 1.113,94 / 300 = 3,71 → 4 cuentas iguala el neto base; 1 cuenta cubre la pérdida conservadora (143,69 / 300 = 0,48). Advertencias: es ingreso, no margen; no sabemos cuántas cuentas se pierden; la mejora en renovación es hipótesis.</p>
+<p><strong>Sensibilidad (base).</strong> Deja de convenir con tarifa de Meta sobre 0,0230 (2,0 veces la actual), más de 15 mensajes o 16,3 conversaciones por contacto evitado, o ~1% de conversaciones derivadas de más a telemedicina (1.113,94 / 9,40 = 118,5).</p>
+<p><strong>Piloto:</strong> conversaciones × 0,0925 + infraestructura; domina la fija.</p>
+<p><strong>Fuentes (verificadas <span class="nw">2026-11-08</span> y 09).</strong> Meta, cobro por mensaje y de servicio desde el 1 de octubre de 2026: developers.facebook.com (pricing, <span class="nw">non-template-messages</span>). Tarifa 0,0113: zernio.com (Supuesto: la oficial de octubre no se verificó). Haiku 5.5 y Opus 5.5 como ejemplos de precio, no elección de proveedor: platform.claude.com/docs. Política de Meta para bots con IA: respond.io, serviceform.com.</p>
+<h2>D5. Cómo sabemos que funciona</h2>
+<p><strong>Antes: conjunto de casos</strong> (frases de prueba con la respuesta correcta anotada). Supuesto: 400, redactados sin texto real de miembros: 200 comunes (40 por punto de entrada), 80 alarmas (20 retenidas, escritas por clínicos que no redactan las reglas), 60 ambiguos, 30 inyecciones (texto que intenta dar órdenes al modelo) y 30 con datos personales. Más 50 salidas fabricadas para el validador.</p>
+<table>
+<thead>
+<tr>
+<th>Puerta</th>
+<th>Umbral</th>
+<th>Si no pasa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Cualquier texto libre, incluida la versión sin IA</td>
+<td>Alarmas: 100% de las 80 en el nivel correcto. Filtro: 100% de identificadores conocidos</td>
+<td>Sin alarmas: solo botones (D3). Sin filtro: modelo apagado</td>
+</tr>
+<tr>
+<td>2. Encender el modelo (con contrato firmado)</td>
+<td>Validador rechaza las 50; acierto ≥ 80%; equivocada ≤ 5%; "no sé" ≤ 15%; ≥ 10 puntos sobre el diccionario sin IA</td>
+<td>Modelo apagado; se ajusta y se reintenta</td>
+</tr>
+<tr>
+<td>2. Seguridad</td>
+<td>0 alarmas rebajadas; 0 salidas fuera de lista; estabilidad ≥ 98% en 3 corridas; ≤ 3 s</td>
+<td>Ídem</td>
+</tr>
+</tbody>
+</table>
+<p>Si no supera al diccionario, encender el modelo solo agrega un subprocesador.</p>
+<p><strong>Modo sombra</strong> (el modelo clasifica sin que el miembro lo vea): semanas <span class="nw">6-7</span> con voluntarios internos y 5 días hábiles en producción. Se hace visible con coincidencia ≥ 80% con la elección del miembro.</p>
+<p><strong>Después.</strong> Eventos con códigos y versiones, nunca texto del miembro; asignación por miembro; responsable de la semana rotativo entre los 4 ingenieros, sin guardia (el modelo se degrada solo a menú).</p>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Alerta (Supuesto)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conversión a cita o solicitud, con IA frente a sin IA</td>
+<td>Con IA 5 puntos por debajo en una semana</td>
+</tr>
+<tr>
+<td>Corrección del miembro</td>
+<td>&gt; 15% semanal</td>
+</tr>
+<tr>
+<td>"No sé" del modelo</td>
+<td>&gt; 25% en un día</td>
+</tr>
+<tr>
+<td>Alarmas no detectadas</td>
+<td>Cualquier caso: el modelo se apaga</td>
+</tr>
+<tr>
+<td>Telemedicina por "no ubicado"</td>
+<td>&gt; 0,5% (el neto se agota con ~1%, D4)</td>
+</tr>
+<tr>
+<td>Traspasos a nivel 3</td>
+<td>&gt; 40% semanal</td>
+</tr>
+<tr>
+<td>Respuesta de proveedores</td>
+<td>&lt; 40%; &lt; 20% crítico</td>
+</tr>
+<tr>
+<td>Mensajes al miembro por conversación</td>
+<td>&gt; 10</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Piloto frente a régimen.</strong> En el piloto el modelo se valida solo en seguridad y calidad: cero alarmas mal resueltas, corrección ≤ 15%, "no sé" sin alerta; si falla, el régimen abre sin IA. La decisión con IA frente a sin IA se toma en régimen: 500 conversaciones con texto libre con IA y 2.000 sin IA dan 2 × raíz(0,25 / 500 + 0,25 / 2.000) = ± 5 puntos, es decir 625 por semana en 4 semanas, que tres cuentas no alcanzan. Criterio previo: sube al 100% con ≥ 5 puntos de mejora; se apaga con 5 de pérdida o corrección &gt; 25%; empate, sube solo si ahorra 1 mensaje. Sin volumen, se extiende en bloques de 2 semanas hasta 8.</p>
+<p><strong>La mañana en que cambia la versión del modelo (§06)</strong></p>
+<p>Prevención: identificador exacto de versión, nunca "la última"; cada llamada registra la versión devuelta y, si no coincide, cuenta como "no sé"; avisos de retiro con la puerta 2 corrida antes de la fecha.</p>
+<p>Detección: corrida diaria de los 400 casos a las 6:00 (400 × 0,000450 = 0,18; USD 5,40 al mes). Apagado automático ante versión distinta, alarma rebajada, salida fuera de lista, inyección exitosa o acierto bajo 80%.</p>
+<p>Respuesta:</p>
+<ol>
+<li>El sistema apaga el modelo o alerta al responsable.</li>
+<li>Si no se apagó, el responsable mueve el interruptor (1 minuto): el 20% ve el menú.</li>
+<li>Verifica alarmas, precios y agenda sin cambios (10 minutos).</li>
+<li>Avisa al CEO y a la jefa de experiencia: "Modelo apagado; el servicio sigue con menú; alarmas y precios no se ven afectados".</li>
+<li>Diagnostica con los 400 casos contra el último informe (1 hora).</li>
+<li>Falla pasajera: reenciende. Versión retirada: puerta 2 completa y 5 días de sombra (1 a 3 días).</li>
+<li>La analista excluye esos días de la comparación.</li>
+</ol>
+<p>Peor caso: el 20% ve unas horas lo mismo que el 80%.</p>
+<h2>D6. La versión sin IA</h2>
+<p><strong>Qué es:</strong> el mismo sistema con el interruptor apagado. WhatsApp con listas nativas ("dolor o molestia", "dientes", "exámenes con orden", "no sé"), pregunta de alarma con botones, palabras de alarma sobre cualquier texto y un diccionario de sinónimos que mantiene la analista ("hombro", "muela"). Comparte limpieza de datos, búsqueda, ranking, los tres niveles de agenda y el traspaso con contexto. Mejora también el directorio y la app.</p>
+<p><strong>Qué captura:</strong> la mayor parte del valor (§06), porque la causa principal son los datos y la navegación por necesidad, no la falta de IA.</p>
+<p><strong>Dónde gana el diseño con IA:</strong> entiende cómo escribe la gente (errores, regionalismos, varias cosas en un mensaje), ahorra pasos de menú y puede detectar formas de pedir ayuda urgente que no están en la lista, solo para escalar.</p>
+<p><strong>Dónde no gana:</strong> no arregla los datos ni hace que los proveedores contesten; su ventaja está acotada porque elige dentro de la misma lista que el menú. Su costo es despreciable frente al canal (D4); lo que cuesta es un subprocesador más con datos de salud, un consentimiento más largo y vigilar versiones (D5).</p>
+<p><strong>Por qué se lanzan ambas:</strong> si la mayoría usa botones, si el abogado no acepta enviar texto al proveedor del modelo o si en régimen la IA no mejora la conversión, nos quedamos sin IA. Se decide con datos de producción, no con opinión.</p>
+<h2>D7. Lo que el brief no dice</h2>
+<table>
+<thead>
+<tr>
+<th>Pregunta (a quién)</th>
+<th>Supuesto</th>
+<th>Qué cambia si es falso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¿La Ley 8968 permite texto libre de salud por WhatsApp y al proveedor del modelo con botón, filtro y contrato? (abogado, §05)</td>
+<td>Sí</td>
+<td>Sin modelo: solo versión sin IA. Sin texto libre en WhatsApp: botones ahí, texto en la app</td>
+</tr>
+<tr>
+<td>¿El consejo aprueba en la semana 3 y revisa por escrito? (§05)</td>
+<td>Sí</td>
+<td>Solo botones; M1 sale como menú de servicios</td>
+</tr>
+<tr>
+<td>¿Qué más dicen las entrevistas de salida? ¿Cómo comunica RR.HH. el beneficio? (§02)</td>
+<td>La causa es navegación y datos</td>
+<td>Lo prioritario es incorporar empleados, no un copiloto</td>
+</tr>
+<tr>
+<td>¿Qué es "disponibilidad estructurada" (41%) y la app la usa? (§03)</td>
+<td>Agenda reservable usada por la app</td>
+<td>El nivel 1 casi desaparece</td>
+</tr>
+<tr>
+<td>¿Los proveedores aceptan solicitudes por WhatsApp? ¿En qué plazo? (§05)</td>
+<td>Confirman 20% a 60%</td>
+<td>El nivel 2 no funciona (riesgo abajo)</td>
+</tr>
+<tr>
+<td>¿Telemedicina atiende "atención pronta"? (§01)</td>
+<td>Sí</td>
+<td>El segundo nivel de alarma queda sin destino</td>
+</tr>
+<tr>
+<td>¿Soporte usa la API de WhatsApp y recibe traspasos con contexto?</td>
+<td>Sí o migrable en la semana 1</td>
+<td>El nivel 3 vuelve a los 6 min 40 s (§03)</td>
+</tr>
+<tr>
+<td>¿La base tiene el WhatsApp del titular y su cuenta corporativa?</td>
+<td>Sí</td>
+<td>No se puede limitar el piloto ni medir renovación</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Contradicciones de §03.</strong> 500 frente a 748 proveedores: usamos sedes (1.140) y una bandera de activo verificada. 11.300 contactos "¿a dónde voy?" superan los 9.000 totales: usamos 9.000, el dato medido, como techo.</p>
+<p><strong>El riesgo que puede matar el proyecto: los proveedores no responden.</strong> La mitad no contesta (§02), solo el 41% tiene agenda (§03) y no se les puede obligar (§05): el 59% de las conversaciones depende de que alguien responda un WhatsApp. Ninguna pieza lo compensa: el copiloto llevaría al miembro más rápido al mismo muro. Es silencioso: la demo funciona con un proveedor coordinado. Con 20% de respuesta caemos en el conservador (-143,69 al mes).</p>
+<p>Detección temprana: en las semanas <span class="nw">3-5</span> la campaña de precios registra quién responde y en cuánto tiempo; en la semana 6, ensayo con 2 o 3 proveedores reales. Bajo 40% es alerta; bajo 20% obliga a rediseñar el alcance antes de la semana 8.</p>
+<p>Mitigación (facilitar, no obligar): prueba de vida para el nivel 2; sedes ancla a cambio de ranking y sello "confirma rápido"; plazo corto con siguiente sede automática; tasa de respuesta en cada reporte al CEO. Si a las 4 semanas está bajo 20% y el nivel 3 supera 40%, la siguiente inversión es la red de proveedores, no más miembros.</p>
+<h2 class="nueva-pagina">D8. Apéndice: cómo usamos IA</h2>
+<p><strong>Herramientas y modelos.</strong> Usé dos herramientas, ambas con el modelo Claude Opus 5.5:</p>
+<ul>
+<li>Claude en el chat del navegador: para analizar el brief, hacer el diagnóstico del mandato, buscar y verificar los precios con su fuente, escribir las instrucciones de cada fase y revisar cada resultado.</li>
+<li>Claude Code: para redactar los archivos de trabajo y este documento, y para verificar los cálculos con scripts. Revisé y corregí cada fase antes de pasar a la siguiente.</li>
+</ul>
+<p><strong>Un caso donde la IA se equivocó con confianza.</strong> En el diagnóstico, la IA afirmó que Meta cobra WhatsApp "por conversación" y que las respuestas dentro de la ventana de 24 horas son gratis. Era información desactualizada: Meta cobra por mensaje desde julio de 2025 y cobra también las respuestas desde octubre de 2026. Se detectó al buscar los precios oficiales de Meta para D4. Cambió la conclusión: con el cobro por mensaje, el costo dominante es el canal (~1.000 veces el modelo), no la IA. De ahí salen decisiones de diseño: contar cada mensaje saliente, agrupar contenido, cortar recordatorios y priorizar la app como canal barato. Desde entonces solo se usan precios verificados con fuente.</p>
+<p><strong>Un caso superficial.</strong> La IA propuso decidir el experimento con IA frente a sin IA en 4 semanas dentro del piloto. No verificó si había volumen: su propio cálculo exigía unas 625 conversaciones con texto libre por semana, que el piloto de tres cuentas no alcanza. Se detectó cruzando el tamaño del piloto con el volumen mínimo. Decisión: en el piloto el modelo se valida solo en seguridad y calidad; la comparación se decide en régimen.</p>
+<p><strong>Algo que se corrigió y por qué el criterio propio fue mejor.</strong> La IA escribió que al modelo viaja el texto "sin identificadores". Es una afirmación absoluta imposible de garantizar: probándolo con un ejemplo concreto ("a mi hija María le duele la muela") aparece un nombre que ningún filtro conoce. El criterio propio fue mejor porque convierte una promesa falsa en un control real: filtro de identificadores conocidos, contrato de subprocesador obligatorio y consentimiento que nombra al proveedor del modelo.</p>
+<p><strong>Una parte que nunca delegaría a un modelo.</strong> La decisión de qué no construir. En este caso, decidí no construir un modelo de IA que le diga al miembro a qué especialista ir según sus síntomas. Esa decisión no depende de tener más información, sino de asumir una responsabilidad: afecta la salud de una persona. Un modelo puede ayudarme a ordenar los argumentos a favor y en contra, pero la decisión la tomo yo, y soy yo quien responde por ella ante el CEO, el regulador y el propio miembro.</p>
+<p><strong>Tiempo total aproximado</strong>: 3 horas efectivas, repartidas en 6 sesiones entre el 28 de octubre y el 9 de noviembre de 2026, incluyendo lectura del brief, revisión de cada fase y ejecución con Claude Code.</p>
+</body></html>
